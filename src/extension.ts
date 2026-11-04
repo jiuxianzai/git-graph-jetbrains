@@ -35,6 +35,27 @@ function withProgress(
   });
 }
 
+function describeCheckoutError(err: unknown, branchName: string): string {
+  const message = err instanceof Error ? err.message : String(err);
+  const worktree = message.match(/already used by worktree at '([^']+)'/);
+  if (worktree) {
+    return t(
+      'Branch "{branch}" is already checked out in another worktree:\n{path}\n\nOpen that folder, or create a new local branch here.',
+      { branch: branchName, path: worktree[1] },
+    );
+  }
+  if (/would be overwritten by checkout/i.test(message)) {
+    return t(
+      'Cannot check out "{branch}": you have uncommitted changes that would be overwritten. Commit or stash them first.',
+      { branch: branchName },
+    );
+  }
+  return t('Could not check out "{branch}": {message}', {
+    branch: branchName,
+    message,
+  });
+}
+
 export function activate(context: vscode.ExtensionContext) {
   // 1. MessageRouter (always created)
   const messageRouter = new MessageRouter();
@@ -601,7 +622,11 @@ export function activate(context: vscode.ExtensionContext) {
     if (!gitService) return NOT_GIT_REPO;
     const branchName = params.branchName as string;
     return withProgress(messageRouter, async () => {
-      await gitService.checkout(branchName);
+      try {
+        await gitService.checkout(branchName);
+      } catch (err) {
+        throw new Error(describeCheckoutError(err, branchName));
+      }
       messageRouter.broadcastEvent("gitStateChanged", { scope: "all" });
       return { success: true };
     });
@@ -615,7 +640,11 @@ export function activate(context: vscode.ExtensionContext) {
     const force = params.force as boolean | undefined;
     await gitService.createBranch(newBranchName, startPoint, force ?? false);
     if (checkout) {
-      await gitService.checkout(newBranchName);
+      try {
+        await gitService.checkout(newBranchName);
+      } catch (err) {
+        throw new Error(describeCheckoutError(err, newBranchName));
+      }
     }
     messageRouter.broadcastEvent("gitStateChanged", { scope: "all" });
     return { success: true };

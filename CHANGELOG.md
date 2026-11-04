@@ -1,6 +1,11 @@
 # Changelog / 更新日志
 
-## [0.4.37] - 2026-11-04
+## [0.4.38] - 2026-11-04
+
+### Fixed / 修复
+- **Checkout failures are now explained** — the extension shows a clear error instead of failing silently, including the common "branch is already checked out in another worktree" case with the conflicting path, and uncommitted-changes conflicts / 检出失败不再静默：会弹出明确错误，包括「该分支已在另一个工作树中检出」及对应路径，以及未提交更改会被覆盖的情况
+
+## 0.4.37 - 2026-11-04
 
 ### Changed / 调整
 - **Current branch pinned with a star** — removed the "当前分支：xxx" header; the current branch is now the first row under Local with a filled yellow star on the left, and no longer duplicated inside its folder / 移除「当前分支：xxx」标题行，当前分支固定排在「本地」第一位，左侧用黄色实心星标标记，不再在文件夹里重复出现

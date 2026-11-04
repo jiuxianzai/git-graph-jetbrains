@@ -1170,7 +1170,9 @@ function BranchContextMenu({
         await bridgeWithProgress("checkoutBranch", { branchName: branch.name });
       }
     } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
       console.error("Checkout failed:", err);
+      void bridge.request("showErrorNotification", { message });
     }
   };
 
