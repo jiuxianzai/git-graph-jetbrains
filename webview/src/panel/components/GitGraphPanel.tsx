@@ -4,6 +4,7 @@ import { GitGraphSvg } from "./GitGraphSvg";
 
 export function GitGraphPanel() {
   const [scrollTop, setScrollTop] = useState(0);
+  const [scrollLeft, setScrollLeft] = useState(0);
   const [containerHeight, setContainerHeight] = useState(600);
   const containerRef = useRef<HTMLDivElement | null>(null);
 
@@ -35,9 +36,10 @@ export function GitGraphPanel() {
         minHeight: 0,
       }}
     >
-      <CommitList onScroll={setScrollTop} />
+      <CommitList onScroll={setScrollTop} onHorizontalScroll={setScrollLeft} />
       <GitGraphSvg
         scrollTop={scrollTop}
+        scrollLeft={scrollLeft}
         height={svgHeight > 0 ? svgHeight : 0}
         topOffset={0}
       />

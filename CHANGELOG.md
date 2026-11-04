@@ -1,6 +1,11 @@
 # Changelog / 更新日志
 
-## [0.4.32] - 2026-11-04
+## [0.4.33] - 2026-11-04
+
+### Fixed / 修复
+- **Graph lines now scroll with the message** — the SVG overlay was absolutely positioned and ignored the list's horizontal offset; it now translates by `scrollLeft`, so the graph and commit text move together while author/date stay pinned / 修复图谱线条不跟随横向滚动的问题：SVG 叠加层现在按 scrollLeft 平移，与消息一起滚动，作者/日期仍固定
+
+## 0.4.32 - 2026-11-04
 
 ### Changed / 调整
 - **Horizontal scrolling with fixed author/date** — the graph, message and branch labels scroll together horizontally when the row is wider than the panel, while author and date stay pinned on the right / 恢复横向滚动：图谱、消息、分支标签一起横向滚动，作者和日期固定在右侧

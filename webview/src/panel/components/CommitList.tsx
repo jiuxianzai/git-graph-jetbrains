@@ -28,8 +28,10 @@ const DEFAULT_COLUMN_WIDTHS: ColumnWidths = {
 
 export function CommitList({
   onScroll,
+  onHorizontalScroll,
 }: {
   onScroll?: (scrollTop: number) => void;
+  onHorizontalScroll?: (scrollLeft: number) => void;
 }) {
   const visibleCommits = usePanelStore((s) => s.visibleCommits);
   const commits = usePanelStore((s) => s.commits);
@@ -234,6 +236,7 @@ export function CommitList({
     const el = parentRef.current;
     if (!el) return;
     onScroll?.(el.scrollTop);
+    onHorizontalScroll?.(el.scrollLeft);
     if (
       !loading &&
       hasMore &&
@@ -241,7 +244,7 @@ export function CommitList({
     ) {
       loadMore();
     }
-  }, [onScroll, loading, hasMore, loadMore]);
+  }, [onScroll, onHorizontalScroll, loading, hasMore, loadMore]);
 
   useEffect(() => {
     const el = parentRef.current;

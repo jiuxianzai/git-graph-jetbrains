@@ -217,10 +217,12 @@ function computeCollapsibleSequences(
 
 export function GitGraphSvg({
   scrollTop,
+  scrollLeft = 0,
   height,
   topOffset = 0,
 }: {
   scrollTop: number;
+  scrollLeft?: number;
   height: number;
   topOffset?: number;
 }) {
@@ -449,6 +451,7 @@ export function GitGraphSvg({
         left: 0,
         zIndex: 5,
         pointerEvents: "none",
+        transform: `translateX(${-scrollLeft}px)`,
       }}
       aria-hidden="true"
     >
