@@ -1,6 +1,11 @@
 # Changelog / 更新日志
 
-## [0.4.33] - 2026-11-04
+## [0.4.34] - 2026-11-04
+
+### Changed / 调整
+- **JetGit font one size smaller again** — base font is now VS Code font − 2px (13px → 11px by default) / JetGit 字号再小一号：基础字号改为 VS Code 字号 − 2px（默认 13 → 11px）
+
+## 0.4.33 - 2026-11-04
 
 ### Fixed / 修复
 - **Graph lines now scroll with the message** — the SVG overlay was absolutely positioned and ignored the list's horizontal offset; it now translates by `scrollLeft`, so the graph and commit text move together while author/date stay pinned / 修复图谱线条不跟随横向滚动的问题：SVG 叠加层现在按 scrollLeft 平移，与消息一起滚动，作者/日期仍固定
