@@ -8,11 +8,17 @@ import { usePanelStore } from "../../shared/store/panel-store";
 import type { Commit } from "../../shared/types/git";
 import { formatCommitDate } from "../utils/date";
 import { CommitContextMenu } from "./CommitContextMenu";
-import { type ColumnWidths, CommitRow, ROW_HEIGHT } from "./CommitRow";
+import {
+  buildRefDisplayItems,
+  type ColumnWidths,
+  CommitRow,
+  ROW_HEIGHT,
+} from "./CommitRow";
 import { CreateBranchDialog } from "./CreateBranchDialog";
 
 const COLUMN_WIDTH = 10;
 const GRAPH_PADDING = 6;
+const NODE_TEXT_GAP = 14;
 
 const DEFAULT_COLUMN_WIDTHS: ColumnWidths = {
   author: 88,
@@ -35,7 +41,6 @@ export function CommitList({
 
   const parentRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const [listWidth, setListWidth] = useState(0);
   const [columnWidths, setColumnWidths] = useState<ColumnWidths>(
     DEFAULT_COLUMN_WIDTHS,
   );
@@ -70,16 +75,39 @@ export function CommitList({
   );
   const graphWidth = (maxColumn + 1) * COLUMN_WIDTH + GRAPH_PADDING * 2;
 
-  useEffect(() => {
-    const element = containerRef.current;
-    if (!element) return;
-    const observer = new ResizeObserver((entries) => {
-      setListWidth(entries[0]?.contentRect.width ?? element.clientWidth);
-    });
-    observer.observe(element);
-    setListWidth(element.clientWidth);
-    return () => observer.disconnect();
-  }, []);
+  // Width needed to show the full subject + branch refs; capped so a single
+  // huge message cannot create an endless scrollbar.
+  const messageContentWidth = useMemo(() => {
+    if (commits.length === 0) return 240;
+    const canvas = document.createElement("canvas");
+    const context = canvas.getContext("2d");
+    if (context) {
+      const style = getComputedStyle(document.body);
+      context.font = `${style.fontSize} ${style.fontFamily}`;
+    }
+    const measure = (text: string) =>
+      context ? context.measureText(text).width : text.length * 7;
+    let max = 0;
+    for (const commit of commits) {
+      const refs = buildRefDisplayItems(commit.refs).filter(
+        (item) => item.type !== "HEAD",
+      );
+      let refsWidth = 0;
+      if (refs.length > 0) {
+        const labels = refs.map((item) => item.label).join(" & ");
+        refsWidth = 20 + measure(labels) + 8;
+      }
+      max = Math.max(max, measure(commit.subject) + refsWidth);
+    }
+    return Math.min(640, Math.max(200, Math.ceil(max) + 24));
+  }, [commits]);
+
+  const fixedWidth =
+    (visibleColumns.author ? columnWidths.author : 0) +
+    (visibleColumns.date ? columnWidths.date : 0) +
+    (visibleColumns.hash ? columnWidths.hash : 0);
+  const rowWidth =
+    graphWidth + NODE_TEXT_GAP + messageContentWidth + fixedWidth + 8;
 
   // Fit the author/date columns to their widest content so names and dates are
   // never wrapped or ellipsized. Manual resizing wins once the user drags.
@@ -197,6 +225,11 @@ export function CommitList({
     virtualizer,
   ]);
 
+  useEffect(() => {
+    const element = parentRef.current;
+    if (element) element.scrollLeft = 0;
+  }, []);
+
   const handleScroll = useCallback(() => {
     const el = parentRef.current;
     if (!el) return;
@@ -234,15 +267,16 @@ export function CommitList({
         style={{
           flex: 1,
           minHeight: 0,
-          overflowY: "auto",
-          overflowX: "hidden",
+          overflow: "auto",
           position: "relative",
+          overflowAnchor: "none",
         }}
       >
         <div
           style={{
             height: virtualizer.getTotalSize(),
             width: "100%",
+            minWidth: rowWidth,
             position: "relative",
           }}
         >
@@ -266,7 +300,6 @@ export function CommitList({
                   lane={lane}
                   graphWidth={graphWidth}
                   columnWidths={columnWidths}
-                  compactRefs={listWidth > 0 && listWidth < 560}
                   visibleColumns={visibleColumns}
                   onCommitClick={handleCommitClick}
                   onContextMenu={handleContextMenu}

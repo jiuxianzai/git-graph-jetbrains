@@ -1,5 +1,10 @@
 # Changelog / 更新日志
 
+## [0.4.32] - 2026-11-04
+
+### Changed / 调整
+- **Horizontal scrolling with fixed author/date** — the graph, message and branch labels scroll together horizontally when the row is wider than the panel, while author and date stay pinned on the right / 恢复横向滚动：图谱、消息、分支标签一起横向滚动，作者和日期固定在右侧
+
 ## [0.4.31] - 2026-11-04
 
 ### Changed / 调整

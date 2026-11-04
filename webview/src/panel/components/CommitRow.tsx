@@ -150,7 +150,6 @@ export function CommitRow({
   lane,
   graphWidth,
   columnWidths,
-  compactRefs = false,
   visibleColumns,
   onCommitClick,
   onContextMenu,
@@ -159,7 +158,6 @@ export function CommitRow({
   lane: LaneInfo | undefined;
   graphWidth: number;
   columnWidths: ColumnWidths;
-  compactRefs?: boolean;
   visibleColumns?: VisibleColumns;
   onCommitClick: (event: React.MouseEvent, hash: string) => void;
   onContextMenu?: (event: React.MouseEvent, commit: Commit) => void;
@@ -174,13 +172,12 @@ export function CommitRow({
     (item) => item.type !== "HEAD",
   );
   const refLabel = refItems.map((item) => item.label).join(" & ");
-  // Narrow panels show the leaf name only (feature/x → x, origin & x → x).
-  const compactRefLabel =
-    refLabel
-      .replace(/^[^&]*&\s*/, "")
-      .split("/")
-      .pop() || refLabel;
   const primaryRefType = refItems[0]?.type ?? "branch";
+  const hashVisible = visibleColumns?.hash !== false;
+  const dateVisible = visibleColumns?.date !== false;
+  const stickyDateRight = hashVisible ? columnWidths.hash : 0;
+  const stickyAuthorRight =
+    stickyDateRight + (dateVisible ? columnWidths.date : 0);
 
   return (
     <div
@@ -250,10 +247,8 @@ export function CommitRow({
             style={{
               display: "inline-flex",
               alignItems: "center",
-              flexShrink: 1,
+              flexShrink: 0,
               minWidth: 0,
-              maxWidth: compactRefs ? 96 : "50%",
-              overflow: "hidden",
               marginLeft: 8,
               paddingLeft: 8,
             }}
@@ -297,13 +292,10 @@ export function CommitRow({
                   style={{
                     fontSize: "0.8em",
                     whiteSpace: "nowrap",
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
                     opacity: 0.85,
-                    minWidth: 0,
                   }}
                 >
-                  {compactRefs ? compactRefLabel : refLabel}
+                  {refLabel}
                 </span>
               </span>
             </Tooltip>
@@ -321,6 +313,11 @@ export function CommitRow({
             textOverflow: "ellipsis",
             whiteSpace: "nowrap",
             paddingLeft: 8,
+            position: "sticky",
+            right: stickyAuthorRight,
+            zIndex: 1,
+            background:
+              "linear-gradient(var(--commit-row-bg, var(--app-bg)), var(--commit-row-bg, var(--app-bg))) var(--app-bg)",
           }}
         >
           <span style={{ opacity: 0.7 }}>{commit.authorName}</span>
@@ -337,6 +334,11 @@ export function CommitRow({
             textAlign: "left",
             paddingLeft: 8,
             whiteSpace: "nowrap",
+            position: "sticky",
+            right: stickyDateRight,
+            zIndex: 1,
+            background:
+              "linear-gradient(var(--commit-row-bg, var(--app-bg)), var(--commit-row-bg, var(--app-bg))) var(--app-bg)",
           }}
         >
           <span style={{ opacity: 0.5 }}>
@@ -357,6 +359,11 @@ export function CommitRow({
             paddingLeft: 8,
             fontFamily: "monospace",
             fontSize: "0.9em",
+            position: "sticky",
+            right: 0,
+            zIndex: 1,
+            background:
+              "linear-gradient(var(--commit-row-bg, var(--app-bg)), var(--commit-row-bg, var(--app-bg))) var(--app-bg)",
           }}
         >
           <span style={{ opacity: 0.5 }}>{commit.shortHash}</span>
