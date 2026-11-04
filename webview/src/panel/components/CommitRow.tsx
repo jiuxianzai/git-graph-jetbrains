@@ -250,7 +250,7 @@ export function CommitRow({
               alignItems: "center",
               gap: 4,
               flexShrink: 0,
-              marginLeft: "auto",
+              marginLeft: 8,
               paddingLeft: 8,
             }}
           >
