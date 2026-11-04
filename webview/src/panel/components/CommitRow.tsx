@@ -169,11 +169,6 @@ export function CommitRow({
   const isSelected = selectedCommitHashes.includes(commit.hash);
   const col = lane?.column ?? 0;
   const refItems = buildRefDisplayItems(commit.refs);
-  const hashVisible = visibleColumns?.hash !== false;
-  const dateVisible = visibleColumns?.date !== false;
-  const stickyDateRight = hashVisible ? columnWidths.hash : 0;
-  const stickyAuthorRight =
-    stickyDateRight + (dateVisible ? columnWidths.date : 0);
 
   return (
     <div
@@ -205,11 +200,6 @@ export function CommitRow({
           width: graphWidth + NODE_TEXT_GAP,
           flexShrink: 0,
           alignSelf: "stretch",
-          position: "sticky",
-          left: 0,
-          zIndex: 2,
-          background:
-            "linear-gradient(var(--commit-row-bg, var(--app-bg)), var(--commit-row-bg, var(--app-bg))) var(--app-bg)",
         }}
       />
       {/* Subject + refs column (flex) */}
@@ -249,7 +239,10 @@ export function CommitRow({
               display: "inline-flex",
               alignItems: "center",
               gap: 4,
-              flexShrink: 0,
+              flexShrink: 1,
+              minWidth: 0,
+              maxWidth: "50%",
+              overflow: "hidden",
               marginLeft: 8,
               paddingLeft: 8,
             }}
@@ -320,11 +313,6 @@ export function CommitRow({
             textOverflow: "ellipsis",
             whiteSpace: "nowrap",
             paddingLeft: 8,
-            position: "sticky",
-            right: stickyAuthorRight,
-            zIndex: 1,
-            background:
-              "linear-gradient(var(--commit-row-bg, var(--app-bg)), var(--commit-row-bg, var(--app-bg))) var(--app-bg)",
           }}
         >
           <span style={{ opacity: 0.7 }}>{commit.authorName}</span>
@@ -341,11 +329,6 @@ export function CommitRow({
             textAlign: "left",
             paddingLeft: 8,
             whiteSpace: "nowrap",
-            position: "sticky",
-            right: stickyDateRight,
-            zIndex: 1,
-            background:
-              "linear-gradient(var(--commit-row-bg, var(--app-bg)), var(--commit-row-bg, var(--app-bg))) var(--app-bg)",
           }}
         >
           <span style={{ opacity: 0.5 }}>
@@ -366,11 +349,6 @@ export function CommitRow({
             paddingLeft: 8,
             fontFamily: "monospace",
             fontSize: "0.9em",
-            position: "sticky",
-            right: 0,
-            zIndex: 1,
-            background:
-              "linear-gradient(var(--commit-row-bg, var(--app-bg)), var(--commit-row-bg, var(--app-bg))) var(--app-bg)",
           }}
         >
           <span style={{ opacity: 0.5 }}>{commit.shortHash}</span>

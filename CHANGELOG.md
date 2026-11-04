@@ -1,5 +1,11 @@
 # Changelog / 更新日志
 
+## [0.4.28] - 2026-11-04
+
+### Fixed / 修复
+- **No more overlapping graph/labels** — removed horizontal scrolling and the sticky graph/columns; the graph, message, branch labels, author and date each get their own space, so nothing covers the commit text / 移除横向滚动与固定图谱/列，图谱、消息、分支标签、作者、日期各占独立空间，不再互相遮挡
+- **Long text is truncated with a tooltip** — subject and refs ellipsize inside their own area; hover to see the full value / 长消息和分支标签在各自区域内省略，悬停可看完整内容
+
 ## [0.4.27] - 2026-11-04
 
 ### Fixed / 修复

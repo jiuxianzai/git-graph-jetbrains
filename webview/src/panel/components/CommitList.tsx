@@ -13,7 +13,6 @@ import { CreateBranchDialog } from "./CreateBranchDialog";
 
 const COLUMN_WIDTH = 10;
 const GRAPH_PADDING = 6;
-const NODE_TEXT_GAP = 14;
 
 const DEFAULT_COLUMN_WIDTHS: ColumnWidths = {
   author: 88,
@@ -69,16 +68,6 @@ export function CommitList({
     ...Object.values(graphLayout).map((l) => l.column),
   );
   const graphWidth = (maxColumn + 1) * COLUMN_WIDTH + GRAPH_PADDING * 2;
-
-  const fixedWidth =
-    (visibleColumns.author ? columnWidths.author : 0) +
-    (visibleColumns.date ? columnWidths.date : 0) +
-    (visibleColumns.hash ? columnWidths.hash : 0);
-  // Keep a readable message column; only scroll horizontally when the panel is
-  // too narrow for graph + message + author/date. Long messages still ellipsize.
-  const MIN_MESSAGE_WIDTH = 160;
-  const rowWidth =
-    graphWidth + NODE_TEXT_GAP + MIN_MESSAGE_WIDTH + fixedWidth + 8;
 
   // Fit the author/date columns to their widest content so names and dates are
   // never wrapped or ellipsized. Manual resizing wins once the user drags.
@@ -196,13 +185,6 @@ export function CommitList({
     virtualizer,
   ]);
 
-  // Start at the left edge – a restored/anchored scroll offset would hide the
-  // message column behind the pinned graph gutter.
-  useEffect(() => {
-    const element = parentRef.current;
-    if (element) element.scrollLeft = 0;
-  }, []);
-
   const handleScroll = useCallback(() => {
     const el = parentRef.current;
     if (!el) return;
@@ -240,16 +222,15 @@ export function CommitList({
         style={{
           flex: 1,
           minHeight: 0,
-          overflow: "auto",
+          overflowY: "auto",
+          overflowX: "hidden",
           position: "relative",
-          overflowAnchor: "none",
         }}
       >
         <div
           style={{
             height: virtualizer.getTotalSize(),
             width: "100%",
-            minWidth: rowWidth,
             position: "relative",
           }}
         >
