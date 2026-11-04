@@ -426,6 +426,27 @@
   cursor: pointer;
 }
 
+/* Conventional Commit type picker */
+.commit-type-select {
+  margin-left: auto;
+  height: 24px;
+  max-width: 150px;
+  min-width: 92px;
+  padding: 0 4px;
+  border: 1px solid var(--vscode-dropdown-border, var(--input-border));
+  border-radius: 4px;
+  background: var(--vscode-dropdown-background, var(--input-bg));
+  color: var(--vscode-dropdown-foreground, var(--input-fg));
+  font-family: var(--font-family);
+  font-size: 11px;
+  outline: none;
+  cursor: pointer;
+}
+
+.commit-type-select:focus {
+  border-color: #3574f0;
+}
+
 /* ─── Commit Buttons ───────────────────────────────────────────── */
 .commit-buttons {
   display: flex;

@@ -1,5 +1,10 @@
 # Changelog / 更新日志
 
+## [0.4.20] - 2026-11-04
+
+### Added / 新增
+- **Conventional Commit type picker** — the commit message box now has a type dropdown (`feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`, `revert`); selecting one writes the matching `type: ` prefix, switching types rewrites only the prefix (keeping `(scope)` / `!`), and "No type" removes it / 提交信息框新增类型下拉框（`feat`、`fix`、`docs`、`style`、`refactor`、`perf`、`test`、`build`、`ci`、`chore`、`revert`）：选中即在提交信息前写入 `feat: ` 等前缀，切换类型只替换前缀（保留 `(scope)` 与 `!`），选「无类型」则移除前缀
+
 ## [0.4.19] - 2026-11-04
 
 ### Added / 新增

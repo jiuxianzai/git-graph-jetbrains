@@ -5,6 +5,11 @@ import { Tooltip } from "../../shared/components/Tooltip";
 import "../../shared/components/Tooltip.css";
 import { t } from "../../shared/i18n";
 import { useCommitStore } from "../../shared/store/commit-store";
+import {
+  applyCommitType,
+  COMMIT_TYPES,
+  detectCommitType,
+} from "../utils/commit-prefix";
 
 export function CommitMessageArea() {
   const {
@@ -21,6 +26,7 @@ export function CommitMessageArea() {
   const [showHistory, setShowHistory] = useState(false);
   const [recentMessages, setRecentMessages] = useState<string[]>([]);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const historyBtnRef = useRef<HTMLSpanElement>(null);
   const historyDropdownRef = useRef<HTMLDivElement>(null);
 
@@ -39,6 +45,24 @@ export function CommitMessageArea() {
     await commit();
     await bridge.request("openPushPanel");
   }, [canCommit, commit]);
+
+  const activeCommitType = detectCommitType(commitMessage);
+
+  const handleCommitTypeChange = useCallback(
+    (type: string) => {
+      setCommitMessage(applyCommitType(commitMessage, type));
+      // Put the caret after the prefix (or after the message) so the user can
+      // keep typing immediately.
+      requestAnimationFrame(() => {
+        const textarea = textareaRef.current;
+        if (!textarea) return;
+        textarea.focus();
+        const end = textarea.value.length;
+        textarea.setSelectionRange(end, end);
+      });
+    },
+    [commitMessage, setCommitMessage],
+  );
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
@@ -98,6 +122,7 @@ export function CommitMessageArea() {
   return (
     <div className="commit-message-area">
       <textarea
+        ref={textareaRef}
         className="commit-message-textarea"
         placeholder={t("Commit message (Ctrl+Enter to commit)")}
         value={commitMessage}
@@ -163,6 +188,20 @@ export function CommitMessageArea() {
             />,
             document.body,
           )}
+        <select
+          className="commit-type-select"
+          aria-label={t("Commit type")}
+          title={t("Commit type")}
+          value={activeCommitType}
+          onChange={(e) => handleCommitTypeChange(e.target.value)}
+        >
+          <option value="">{t("No type")}</option>
+          {COMMIT_TYPES.map((option) => (
+            <option key={option.value} value={option.value}>
+              {`${option.value} · ${t(option.label)}`}
+            </option>
+          ))}
+        </select>
       </div>
 
       <div className="commit-buttons">
