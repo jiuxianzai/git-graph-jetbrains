@@ -1,5 +1,5 @@
 {
-  "displayName": "JetGit — IntelliJ-style Git Graph, Commit & Shelf for VS Code",
+  "displayName": "Git Graph (JetBrains)",
   "description": "A community fork of JetBrains Git for VS Code & Cursor with full Simplified Chinese UI, prefix-grouped branch tree, Conventional Commit type picker, resizable commit box and a compact, readable Git log.",
   "viewContainer.gitLog": "JetGit",
   "viewContainer.commit": "Commit",

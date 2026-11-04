@@ -2,7 +2,7 @@
 
 ## [1.0.0] - 2026-11-05
 
-First release of the **jiuxianzai.jetgit** fork.
+First release of the **jiuxianzai.git-graph-jetbrains** fork.
 
 ### Added / 新增
 - **Full Simplified Chinese UI** with `jetgit.language` (`auto` / `en` / `zh-cn`)
@@ -17,7 +17,7 @@ First release of the **jiuxianzai.jetgit** fork.
 - `今天 / 昨天 / YYYY/MM/DD HH:mm` date formatting
 - Graph + message scroll horizontally together while author/date stay pinned
 - Default panel split 22% / 54% / 24%, remembered per workspace
-- Renamed to `jiuxianzai.jetgit`; README rewritten with fork attribution and trademark disclaimer
+- Renamed to `jiuxianzai.git-graph-jetbrains` (display name **Git Graph (JetBrains)**); README rewritten with fork attribution and trademark disclaimer
 
 ### Fixed / 修复
 - Double-clicking a commit file no longer selects its text

@@ -2,7 +2,7 @@
 
 <img src="https://raw.githubusercontent.com/jiuxianzai/jetbrains-git-graph/main/images/icon.png" width="96" />
 
-# JetGit
+# Git Graph (JetBrains)
 
 **把 IntelliJ 风格的 Git 图谱、提交面板与 Shelf 带到 VS Code / Cursor，并提供完整简体中文界面。**
 
@@ -23,7 +23,7 @@
   （本分支基于其 `0.4.17` 版本）
 - **上游最初来源：** [`zhyc9de/jet-git`](https://github.com/zhyc9de/jet-git)
 - **本分支仓库：** [`jiuxianzai/jetbrains-git-graph`](https://github.com/jiuxianzai/jetbrains-git-graph)
-- **插件市场 ID：** `jiuxianzai.jetgit`
+- **插件市场 ID：** `jiuxianzai.git-graph-jetbrains`
 
 原始代码与界面的版权归上游作者所有。本分支保留 MIT 协议与原始版权声明
 （见 [`LICENSE`](./LICENSE)），并在其基础上做了下述修改。
@@ -53,7 +53,7 @@ JetBrains s.r.o. 的商标；“Visual Studio Code” 是 Microsoft Corporation 
 | **横向滚动** | 当日志确实放不下时，**图谱与消息一起横向滚动**，**作者/日期固定在右侧**；长分支标签在消息后显示，超出省略并可悬停查看。 |
 | **交互修复** | 提交面板双击文件不再选中文字；合并/变基右键菜单项不再以 `?` 结尾（问号只保留在确认弹窗中）。 |
 | **Worktree 检出** | 分支已在其他 worktree 检出时，给出明确提示并询问是否**在新窗口打开该 worktree**；未提交更改冲突也会说明原因，不再静默失败。 |
-| **打包** | 本分支重命名为 `jiuxianzai.jetgit`，以 `1.0.0` 作为分支首个发布版本。 |
+| **打包** | 本分支重命名为 `jiuxianzai.git-graph-jetbrains`，以 `1.0.0` 作为分支首个发布版本。 |
 
 其余能力（Git 图谱引擎、提交/Shelf 面板、三方合并编辑器、冲突管理、
 Cherry-Pick/Rebase/Merge、文件历史与右键菜单）均来自上游项目。
@@ -93,15 +93,15 @@ Cherry-Pick/Rebase/Merge、文件历史与右键菜单）均来自上游项目�
 **插件市场（本分支发布后）：**
 
 ```
-ext install jiuxianzai.jetgit
+ext install jiuxianzai.git-graph-jetbrains
 ```
 
-或在扩展市场搜索 **JetGit**。
+或在扩展市场搜索 **Git Graph (JetBrains)**。
 
 **从 VSIX 安装：**
 
 ```bash
-code --install-extension jetgit-1.0.0.vsix
+code --install-extension git-graph-jetbrains-1.0.0.vsix
 ```
 
 > 如果之前安装过 `autemj.idea-like-git-graph`，两者 ID 不同，可以共存；

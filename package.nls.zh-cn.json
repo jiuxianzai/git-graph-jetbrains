@@ -1,5 +1,5 @@
 {
-  "displayName": "JetGit — 为 VS Code 带来 IntelliJ 风格的 Git 图谱与提交面板",
+  "displayName": "Git Graph（JetBrains）",
   "description": "JetBrains Git 的社区分支版本，面向 VS Code 和 Cursor：完整简体中文界面、按前缀折叠的分支树、Conventional Commit 类型选择、可拖动提交框，以及更紧凑易读的 Git 日志。",
   "viewContainer.gitLog": "JetGit",
   "viewContainer.commit": "提交",

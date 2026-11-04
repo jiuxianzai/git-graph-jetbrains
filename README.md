@@ -2,7 +2,7 @@
 
 <img src="https://raw.githubusercontent.com/jiuxianzai/jetbrains-git-graph/main/images/icon.png" width="96" />
 
-# JetGit
+# Git Graph (JetBrains)
 
 **IntelliJ-style Git graph, commit panel and shelf for VS Code / Cursor — with a full Simplified Chinese UI.**
 
@@ -23,7 +23,7 @@ This repository is a **community fork**, not the original project.
   (the upstream project this fork is based on, at version `0.4.17`)
 - **Which itself is a fork of:** [`zhyc9de/jet-git`](https://github.com/zhyc9de/jet-git)
 - **This fork:** [`jiuxianzai/jetbrains-git-graph`](https://github.com/jiuxianzai/jetbrains-git-graph)
-- **Marketplace ID:** `jiuxianzai.jetgit`
+- **Marketplace ID:** `jiuxianzai.git-graph-jetbrains`
 
 The original code and UI are the work of the upstream authors. This fork keeps
 the MIT license and the original copyright notices (see [`LICENSE`](./LICENSE)),
@@ -55,7 +55,7 @@ Compared with the upstream `aotemj/jetbrains-git-graph` at `0.4.17`:
 | **Wide commits** | When the log genuinely overflows, the **branch graph and message scroll together horizontally** while **author/date stay pinned** on the right. Long refs are shown next to the subject with ellipsis and tooltips. |
 | **Interaction fixes** | Double-clicking a file in the commit panel no longer selects its text. Merge/rebase context-menu labels no longer end with `?` (the question mark stays in the confirmation dialog). |
 | **Worktree-aware checkout** | When a branch is checked out in another worktree, checkout shows a clear message and offers to **open that worktree in a new window**. Dirty-tree conflicts are explained instead of failing silently. |
-| **Packaging** | Renamed to `jiuxianzai.jetgit` for this fork, versioned `1.0.0` as the first release of the fork. |
+| **Packaging** | Renamed to `jiuxianzai.git-graph-jetbrains` for this fork, versioned `1.0.0` as the first release of the fork. |
 
 Everything else — the Git graph engine, commit/shelf panel, 3-way merge
 editor, conflict management, cherry-pick/rebase/merge actions, file history and
@@ -96,15 +96,15 @@ context menus — comes from the upstream project.
 **From the Marketplace (after this fork is published):**
 
 ```
-ext install jiuxianzai.jetgit
+ext install jiuxianzai.git-graph-jetbrains
 ```
 
-or search for **JetGit** in the Extensions view.
+or search for **Git Graph (JetBrains)** in the Extensions view.
 
 **From a VSIX:**
 
 ```bash
-code --install-extension jetgit-1.0.0.vsix
+code --install-extension git-graph-jetbrains-1.0.0.vsix
 ```
 
 > If you previously installed `autemj.idea-like-git-graph`, the two extensions
