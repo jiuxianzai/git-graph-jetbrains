@@ -134,4 +134,7 @@ export const zhPanel: Record<string, string> = {
   Apply: "应用",
   "Apply changes to '{file}' from this commit to working tree?":
     "是否将此提交中对“{file}”的更改应用到工作树？",
+  "Branch prefix": "分支前缀",
+  None: "无",
+  "New branch: {name}": "新分支：{name}",
 };

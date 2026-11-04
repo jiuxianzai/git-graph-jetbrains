@@ -1,5 +1,11 @@
 # Changelog / 更新日志
 
+## [0.4.19] - 2026-11-04
+
+### Added / 新增
+- **WebStorm-style branch tree is now on by default** — branches are grouped by their `/` prefix into collapsible folders (`feature/login` → `feature ▸ login`), with branch counts per folder and full-path tooltips; the toolbar toggle still switches back to a flat list and the choice is remembered / 分支面板默认按 `/` 前缀折叠成目录树（`feature/login` → `feature ▸ login`），文件夹显示分支数量与完整路径提示；工具栏开关仍可切回平铺，并记住选择
+- **Branch prefix picker in the New Branch dialog** — choose `feature/`, `bugfix/`, `hotfix/`, `release/` or `chore/` and type only the name (`login` → `feature/login`); the last used prefix is remembered, and typing a name containing `/` keeps it as a full path / 新建分支对话框新增前缀选择：可选 `feature/`、`bugfix/`、`hotfix/`、`release/`、`chore/`，只需输入名字（`login` → `feature/login`）；记住上次选择，输入含 `/` 的名称时按完整路径处理
+
 ## [0.4.18] - 2026-11-04
 
 ### Added / 新增

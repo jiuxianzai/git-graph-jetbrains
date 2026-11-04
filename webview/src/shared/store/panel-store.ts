@@ -205,11 +205,13 @@ export const usePanelStore = create<PanelStore>((set, get) => ({
   rangeNewest: null,
   selectedBranches: [],
   lastSelectedBranch: null,
+  // WebStorm-style: group branches by their `/` prefix (feature/foo → feature ▸ foo)
+  // by default. Users who explicitly flattened the list keep that preference.
   branchGroupByDirectory: (() => {
     try {
-      return localStorage.getItem("branchGroupByDirectory") === "true";
+      return localStorage.getItem("branchGroupByDirectory") !== "false";
     } catch {
-      return false;
+      return true;
     }
   })(),
 

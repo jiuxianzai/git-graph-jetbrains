@@ -38,7 +38,7 @@ Right-click files in the Changed Files panel: show diff, edit source, open repos
 
 ![Git Graph](https://raw.githubusercontent.com/aotemj/jetbrains-git-graph/main/images/git-graph.png)
 
-- **Branch Tree** — branches organized by Local / Remote / Tags with search filter
+- **Branch Tree** — branches organized by Local / Remote / Tags with search filter, prefix folders (`feature/login` → `feature ▸ login`) and a WebStorm-style branch prefix picker (`feature/`, `bugfix/`, `hotfix/`…)
 - **Commit List** — color-coded branch lines, resizable columns (Message, Author, Date, Hash)
 - **Detail Panel** — commit message and changed file tree
 - **Filters** — filter by Branch, User, Date range

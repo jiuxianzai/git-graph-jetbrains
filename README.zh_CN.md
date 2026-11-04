@@ -38,7 +38,7 @@ IntelliJ IDEA 风格的 Git 可视化工具：提交图、分支管理、Cherry-
 
 ![Git Graph](https://raw.githubusercontent.com/aotemj/jetbrains-git-graph/main/images/git-graph.png)
 
-- **分支树** — 按 Local / Remote / Tags 分组，支持搜索过滤
+- **分支树** — 按 Local / Remote / Tags 分组，支持搜索过滤；默认按 `feature/login` → `feature ▸ login` 前缀折叠成目录，新建分支时可选择 `feature/`、`bugfix/`、`hotfix/` 等前缀
 - **提交列表** — 彩色分支线，可调整列宽（Message、Author、Date、Hash）
 - **详情面板** — 提交信息和变更文件树
 - **过滤器** — 按分支、作者、日期范围过滤

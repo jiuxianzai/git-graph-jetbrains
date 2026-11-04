@@ -192,6 +192,11 @@ function containsCurrentBranch(node: TreeNode): boolean {
   return node.children.some(containsCurrentBranch);
 }
 
+function countLeaves(node: TreeNode): number {
+  if (node.isLeaf) return 1;
+  return node.children.reduce((sum, child) => sum + countLeaves(child), 0);
+}
+
 function sortTreeNodes(nodes: TreeNode[]): void {
   nodes.sort((a, b) => {
     // Current branch (or folder containing it) always comes first.
@@ -799,24 +804,50 @@ function TreeNodeView({
 
   // Directory node
   const isCollapsed = collapsed[collapseKey] ?? false;
+  const leafCount = countLeaves(node);
 
   return (
     <div>
       <div
+        className="selectable-row branch-folder-row"
+        title={node.fullPath}
         onClick={() => onToggle(collapseKey)}
         style={{
           padding: `4px 8px 4px ${20 + depth * 12}px`,
           cursor: "pointer",
           userSelect: "none",
-          opacity: 0.8,
           display: "flex",
           alignItems: "center",
           gap: 2,
+          color: "var(--description-fg)",
+          borderRadius: 3,
+          margin: "0 4px",
         }}
       >
         {isCollapsed ? <IconChevronRight /> : <IconChevronDown />}
-        <IconFolder style={{ color: "var(--description-fg)" }} />
-        <span style={{ marginLeft: 2 }}>{node.name}</span>
+        <IconFolder />
+        <span
+          style={{
+            marginLeft: 2,
+            minWidth: 0,
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+          }}
+        >
+          {node.name}
+        </span>
+        <span
+          style={{
+            marginLeft: "auto",
+            paddingLeft: 6,
+            flexShrink: 0,
+            fontSize: "0.85em",
+            opacity: 0.55,
+          }}
+        >
+          {leafCount}
+        </span>
       </div>
       {!isCollapsed &&
         node.children.map((child) => (

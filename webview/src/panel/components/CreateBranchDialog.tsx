@@ -1,6 +1,41 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { t } from "../../shared/i18n";
 
+/** Common WebStorm-style branch prefixes offered in the name field. */
+const BRANCH_PREFIXES = [
+  "feature/",
+  "bugfix/",
+  "hotfix/",
+  "release/",
+  "chore/",
+] as const;
+
+const PREFIX_STORAGE_KEY = "jetgit.createBranchPrefix";
+
+function splitBranchPrefix(name: string): { prefix: string; rest: string } {
+  for (const prefix of BRANCH_PREFIXES) {
+    if (name.startsWith(prefix)) {
+      return { prefix, rest: name.slice(prefix.length) };
+    }
+  }
+  return { prefix: "", rest: name };
+}
+
+function readStoredPrefix(): string {
+  try {
+    const stored = localStorage.getItem(PREFIX_STORAGE_KEY);
+    if (
+      stored !== null &&
+      (stored === "" || (BRANCH_PREFIXES as readonly string[]).includes(stored))
+    ) {
+      return stored;
+    }
+  } catch {
+    // localStorage unavailable
+  }
+  return "";
+}
+
 export interface CreateBranchDialogProps {
   /** Title shown at top, e.g. "Create Branch from dev" */
   title: string;
@@ -64,7 +99,13 @@ export function CreateBranchDialog({
   onClose,
   onConfirm,
 }: CreateBranchDialogProps) {
-  const [branchName, setBranchName] = useState(defaultName);
+  const initialName = splitBranchPrefix(defaultName);
+  const [branchName, setBranchName] = useState(initialName.rest);
+  // Only restore the last used prefix for brand-new branches, not when the
+  // dialog was opened from an existing branch (defaultName already set).
+  const [prefix, setPrefix] = useState(
+    initialName.prefix || (defaultName ? "" : readStoredPrefix()),
+  );
   const [checkout, setCheckout] = useState(true);
   const [force, setForce] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -93,13 +134,23 @@ export function CreateBranchDialog({
     return () => document.removeEventListener("keydown", handleKeyDown);
   });
 
+  const typedName = branchName.trim();
+  // A name typed with a slash is treated as a full path; otherwise the
+  // selected prefix is prepended (feature/ + login → feature/login).
+  const effectiveName = typedName.includes("/")
+    ? typedName
+    : `${prefix}${typedName}`;
+
   const handleSubmit = useCallback(async () => {
-    const trimmed = branchName.trim();
-    if (!trimmed) return;
+    if (!typedName) return;
     setError(null);
     setSubmitting(true);
     try {
-      const errMsg = await onConfirm({ branchName: trimmed, checkout, force });
+      const errMsg = await onConfirm({
+        branchName: effectiveName,
+        checkout,
+        force,
+      });
       if (errMsg) {
         setError(errMsg);
       }
@@ -109,7 +160,7 @@ export function CreateBranchDialog({
     } finally {
       setSubmitting(false);
     }
-  }, [branchName, checkout, force, onConfirm]);
+  }, [typedName, effectiveName, checkout, force, onConfirm]);
 
   const handleBackdropClick = useCallback(
     (e: React.MouseEvent) => {
@@ -179,24 +230,53 @@ export function CreateBranchDialog({
 
         {/* Branch Name Input */}
         <div style={{ marginBottom: 12 }}>
-          <div
+          <label
+            htmlFor="branch-name-input"
             style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 8,
+              display: "block",
+              fontSize: 12,
+              color: "var(--description-fg)",
               marginBottom: 4,
             }}
           >
-            <label
-              htmlFor="branch-name-input"
+            {t("Branch Name:")}
+          </label>
+          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <select
+              aria-label={t("Branch prefix")}
+              title={t("Branch prefix")}
+              value={prefix}
+              onChange={(e) => {
+                const next = e.target.value;
+                setPrefix(next);
+                setError(null);
+                try {
+                  localStorage.setItem(PREFIX_STORAGE_KEY, next);
+                } catch {
+                  // localStorage unavailable
+                }
+              }}
               style={{
+                maxWidth: 108,
+                height: 28,
+                background: "var(--input-bg)",
+                color: "var(--input-fg)",
+                border: "1px solid var(--input-border)",
+                borderRadius: 4,
+                padding: "0 4px",
                 fontSize: 12,
-                color: "var(--description-fg)",
-                whiteSpace: "nowrap",
+                fontFamily: "var(--font-family)",
+                outline: "none",
+                flexShrink: 0,
               }}
             >
-              {t("Branch Name:")}
-            </label>
+              <option value="">{t("None")}</option>
+              {BRANCH_PREFIXES.map((item) => (
+                <option key={item} value={item}>
+                  {item}
+                </option>
+              ))}
+            </select>
             <input
               ref={inputRef}
               id="branch-name-input"
@@ -209,6 +289,7 @@ export function CreateBranchDialog({
               placeholder={placeholder}
               style={{
                 flex: 1,
+                minWidth: 0,
                 background: "var(--input-bg)",
                 color: "var(--input-fg)",
                 border: error
@@ -223,6 +304,18 @@ export function CreateBranchDialog({
               }}
             />
           </div>
+          {prefix && typedName && !typedName.includes("/") && (
+            <div
+              style={{
+                marginTop: 4,
+                fontSize: 11,
+                color: "var(--description-fg)",
+                opacity: 0.75,
+              }}
+            >
+              {t("New branch: {name}", { name: effectiveName })}
+            </div>
+          )}
         </div>
 
         {/* Checkboxes */}
@@ -289,7 +382,7 @@ export function CreateBranchDialog({
           <button
             type="button"
             onClick={handleSubmit}
-            disabled={!branchName.trim() || submitting}
+            disabled={!typedName || submitting}
             style={{
               background: "var(--button-bg)",
               color: "var(--button-fg)",
@@ -298,8 +391,8 @@ export function CreateBranchDialog({
               padding: "4px 14px",
               fontSize: 12,
               height: 28,
-              cursor: branchName.trim() && !submitting ? "pointer" : "default",
-              opacity: branchName.trim() && !submitting ? 1 : 0.4,
+              cursor: typedName && !submitting ? "pointer" : "default",
+              opacity: typedName && !submitting ? 1 : 0.4,
             }}
           >
             {t("Create")}
