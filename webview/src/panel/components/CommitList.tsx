@@ -9,6 +9,7 @@ import type { Commit } from "../../shared/types/git";
 import { formatCommitDate } from "../utils/date";
 import { CommitContextMenu } from "./CommitContextMenu";
 import {
+  buildRefDisplayItems,
   type ColumnWidths,
   CommitRow,
   ROW_HEIGHT,
@@ -18,6 +19,7 @@ import { CreateBranchDialog } from "./CreateBranchDialog";
 
 const COLUMN_WIDTH = 16;
 const GRAPH_PADDING = 8;
+const NODE_TEXT_GAP = 14;
 
 const HEADER_TEXT_STYLE: React.CSSProperties = {
   whiteSpace: "nowrap",
@@ -47,8 +49,9 @@ export function CommitList({
   const selectCommit = usePanelStore((s) => s.selectCommit);
 
   const parentRef = useRef<HTMLDivElement>(null);
+  const headerRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const [listWidth, setListWidth] = useState(0);
+  const [verticalScrollbarWidth, setVerticalScrollbarWidth] = useState(0);
   const [columnWidths, setColumnWidths] = useState<ColumnWidths>(
     DEFAULT_COLUMN_WIDTHS,
   );
@@ -91,36 +94,62 @@ export function CommitList({
   );
   const graphWidth = (maxColumn + 1) * COLUMN_WIDTH + GRAPH_PADDING * 2;
 
-  // Track the list width so narrow panels can drop trailing columns instead of
-  // squeezing the message column to zero.
-  useEffect(() => {
-    const element = containerRef.current;
-    if (!element) return;
-    const observer = new ResizeObserver((entries) => {
-      setListWidth(entries[0]?.contentRect.width ?? element.clientWidth);
-    });
-    observer.observe(element);
-    setListWidth(element.clientWidth);
-    return () => observer.disconnect();
-  }, []);
-
-  const effectiveColumns = useMemo<VisibleColumns>(() => {
-    const next = { ...visibleColumns };
-    if (!listWidth) return next;
-    const MIN_MESSAGE_WIDTH = 120;
-    const fixedWidth = () =>
-      (next.author ? columnWidths.author : 0) +
-      (next.date ? columnWidths.date : 0) +
-      (next.hash ? columnWidths.hash : 0);
-    const available = listWidth - graphWidth - 16;
-    // Drop the least important columns first until the message keeps its room.
-    for (const key of ["hash", "date", "author"] as const) {
-      if (!next[key]) continue;
-      if (available - fixedWidth() >= MIN_MESSAGE_WIDTH) break;
-      next[key] = false;
+  // Message content is measured so long subjects/refs can be reached by
+  // scrolling horizontally while author/date stay pinned on the right.
+  const messageWidth = useMemo(() => {
+    if (commits.length === 0) return 240;
+    const canvas = document.createElement("canvas");
+    const context = canvas.getContext("2d");
+    if (context) {
+      const style = getComputedStyle(document.body);
+      context.font = `${style.fontSize} ${style.fontFamily}`;
     }
-    return next;
-  }, [visibleColumns, listWidth, graphWidth, columnWidths]);
+    const measure = (text: string) =>
+      context ? context.measureText(text).width : text.length * 7;
+    let max = 0;
+    for (const commit of commits) {
+      const items = buildRefDisplayItems(commit.refs).filter(
+        (item) => item.type !== "HEAD",
+      );
+      let refsWidth = 0;
+      if (items.length > 0) {
+        const labels = items.map((item) => item.label).join("  ");
+        refsWidth =
+          16 + Math.max(0, items.length - 1) * 5 + 4 + measure(labels) + 6;
+      }
+      max = Math.max(max, measure(commit.subject) + refsWidth);
+    }
+    return Math.min(1000, Math.max(200, Math.ceil(max) + 24));
+  }, [commits]);
+
+  const fixedWidth =
+    (visibleColumns.author ? columnWidths.author : 0) +
+    (visibleColumns.date ? columnWidths.date : 0) +
+    (visibleColumns.hash ? columnWidths.hash : 0) +
+    16 * Number(visibleColumns.author) +
+    16 * Number(visibleColumns.date) +
+    16 * Number(visibleColumns.hash);
+  const totalWidth = graphWidth + NODE_TEXT_GAP + messageWidth + fixedWidth + 8;
+  const rowWidth = totalWidth;
+
+  // The header has no scrollbar, so pad it by the body's scrollbar width to
+  // keep sticky header labels aligned with the rows.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: re-measure when the content width changes
+  useEffect(() => {
+    const element = parentRef.current;
+    if (!element) return;
+    setVerticalScrollbarWidth(
+      Math.max(0, element.offsetWidth - element.clientWidth),
+    );
+  }, [rowWidth]);
+
+  const stickyRight = {
+    hash: 0,
+    date: visibleColumns.hash ? columnWidths.hash : 0,
+    author:
+      (visibleColumns.hash ? columnWidths.hash : 0) +
+      (visibleColumns.date ? columnWidths.date : 0),
+  };
 
   // Fit the author/date columns to their widest content so names and dates are
   // never wrapped or ellipsized. Manual resizing wins once the user drags.
@@ -321,6 +350,9 @@ export function CommitList({
   const handleScroll = useCallback(() => {
     const el = parentRef.current;
     if (!el) return;
+    if (headerRef.current) {
+      headerRef.current.scrollLeft = el.scrollLeft;
+    }
     onScroll?.(el.scrollTop);
     if (
       !loading &&
@@ -394,103 +426,126 @@ export function CommitList({
         flexDirection: "column",
         flex: 1,
         minHeight: 0,
+        minWidth: 0,
       }}
     >
       {/* Column header with resize handles */}
       <div
+        ref={headerRef}
         onContextMenu={(e) => {
           e.preventDefault();
           setHeaderMenu({ x: e.clientX, y: e.clientY });
         }}
         style={{
-          display: "flex",
-          alignItems: "center",
           height: 24,
-          paddingLeft: Math.min(graphWidth, 60),
-          paddingRight: 8,
-          borderBottom: "1px solid var(--border, #333)",
-          fontSize: "11px",
-          opacity: 0.6,
           flexShrink: 0,
-          userSelect: "none",
           position: "relative",
           zIndex: 3,
           background: "var(--app-bg, #1e1e1e)",
+          borderBottom: "1px solid var(--border, #333)",
           overflow: "hidden",
         }}
       >
-        <span
-          title={t("Message")}
+        <div
           style={{
-            ...HEADER_TEXT_STYLE,
-            flex: 1,
-            minWidth: 0,
-            paddingRight: 4,
+            display: "flex",
+            alignItems: "center",
+            height: 24,
+            width: "100%",
+            minWidth: rowWidth,
+            paddingLeft: graphWidth + NODE_TEXT_GAP,
+            paddingRight: 8,
+            boxSizing: "border-box",
+            fontSize: "11px",
+            userSelect: "none",
           }}
         >
-          {t("Message")}
-        </span>
-        {effectiveColumns.author && (
-          <>
-            <ColumnResizeHandle
-              active={resizing === "author"}
-              onMouseDown={(e) => startResize("author", e)}
-            />
-            <span
-              title={t("Author")}
-              style={{
-                ...HEADER_TEXT_STYLE,
-                flexShrink: 0,
-                width: columnWidths.author,
-                paddingLeft: 8,
-                boxSizing: "border-box",
-              }}
-            >
-              {t("Author")}
-            </span>
-          </>
-        )}
-        {effectiveColumns.date && (
-          <>
-            <ColumnResizeHandle
-              active={resizing === "date"}
-              onMouseDown={(e) => startResize("date", e)}
-            />
-            <span
-              title={t("Date")}
-              style={{
-                ...HEADER_TEXT_STYLE,
-                flexShrink: 0,
-                width: columnWidths.date,
-                textAlign: "right",
-                paddingLeft: 8,
-                boxSizing: "border-box",
-              }}
-            >
-              {t("Date")}
-            </span>
-          </>
-        )}
-        {effectiveColumns.hash && (
-          <>
-            <ColumnResizeHandle
-              active={resizing === "hash"}
-              onMouseDown={(e) => startResize("hash", e)}
-            />
-            <span
-              title={t("Hash")}
-              style={{
-                ...HEADER_TEXT_STYLE,
-                flexShrink: 0,
-                width: columnWidths.hash,
-                paddingLeft: 8,
-                boxSizing: "border-box",
-              }}
-            >
-              {t("Hash")}
-            </span>
-          </>
-        )}
+          <span
+            title={t("Message")}
+            style={{
+              ...HEADER_TEXT_STYLE,
+              flex: 1,
+              minWidth: 0,
+              paddingRight: 4,
+              opacity: 0.6,
+            }}
+          >
+            {t("Message")}
+          </span>
+          {visibleColumns.author && (
+            <>
+              <ColumnResizeHandle
+                active={resizing === "author"}
+                onMouseDown={(e) => startResize("author", e)}
+              />
+              <span
+                title={t("Author")}
+                style={{
+                  ...HEADER_TEXT_STYLE,
+                  flexShrink: 0,
+                  width: columnWidths.author,
+                  paddingLeft: 8,
+                  boxSizing: "border-box",
+                  position: "sticky",
+                  right: stickyRight.author + verticalScrollbarWidth,
+                  zIndex: 2,
+                  background: "var(--app-bg, #1e1e1e)",
+                }}
+              >
+                <span style={{ opacity: 0.6 }}>{t("Author")}</span>
+              </span>
+            </>
+          )}
+          {visibleColumns.date && (
+            <>
+              <ColumnResizeHandle
+                active={resizing === "date"}
+                onMouseDown={(e) => startResize("date", e)}
+              />
+              <span
+                title={t("Date")}
+                style={{
+                  ...HEADER_TEXT_STYLE,
+                  flexShrink: 0,
+                  width: columnWidths.date,
+                  textAlign: "right",
+                  paddingLeft: 8,
+                  boxSizing: "border-box",
+                  position: "sticky",
+                  right: stickyRight.date + verticalScrollbarWidth,
+                  zIndex: 2,
+                  background: "var(--app-bg, #1e1e1e)",
+                }}
+              >
+                <span style={{ opacity: 0.6 }}>{t("Date")}</span>
+              </span>
+            </>
+          )}
+          {visibleColumns.hash && (
+            <>
+              <ColumnResizeHandle
+                active={resizing === "hash"}
+                onMouseDown={(e) => startResize("hash", e)}
+              />
+              <span
+                title={t("Hash")}
+                style={{
+                  ...HEADER_TEXT_STYLE,
+                  flexShrink: 0,
+                  width: columnWidths.hash,
+                  paddingLeft: 8,
+                  boxSizing: "border-box",
+                  position: "sticky",
+                  right: stickyRight.hash + verticalScrollbarWidth,
+                  zIndex: 2,
+                  background: "var(--app-bg, #1e1e1e)",
+                }}
+              >
+                <span style={{ opacity: 0.6 }}>{t("Hash")}</span>
+              </span>
+            </>
+          )}
+        </div>
       </div>
 
       {/* Column header context menu */}
@@ -520,6 +575,7 @@ export function CommitList({
           style={{
             height: virtualizer.getTotalSize(),
             width: "100%",
+            minWidth: rowWidth,
             position: "relative",
           }}
         >
@@ -543,7 +599,7 @@ export function CommitList({
                   lane={lane}
                   rowMaxColumn={rowMaxColumns[commit.hash] ?? 0}
                   columnWidths={columnWidths}
-                  visibleColumns={effectiveColumns}
+                  visibleColumns={visibleColumns}
                   onCommitClick={handleCommitClick}
                   onContextMenu={handleContextMenu}
                 />

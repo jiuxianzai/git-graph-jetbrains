@@ -230,16 +230,14 @@ export function ConflictsApp() {
           {t("Conflicts")}
         </h2>
         <p style={{ margin: 0, fontSize: 13, opacity: 0.8 }}>
-          {branchInfo ? (
-            t("Merging branch {from} into {into}", {
-              from: branchInfo.from,
-              into: branchInfo.into,
-            })
-          ) : mergeState?.isMerging ? (
-            <>{t("Merge in progress")}</>
-          ) : (
-            <>{t("No merge in progress")}</>
-          )}
+          {branchInfo
+            ? t("Merging branch {from} into {into}", {
+                from: branchInfo.from,
+                into: branchInfo.into,
+              })
+            : mergeState?.isMerging
+              ? t("Merge in progress")
+              : t("No merge in progress")}
         </p>
         {conflictFiles.length > 0 && (
           <p style={{ margin: 0, marginTop: 4, fontSize: 12, opacity: 0.6 }}>

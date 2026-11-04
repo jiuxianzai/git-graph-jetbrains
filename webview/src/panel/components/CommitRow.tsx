@@ -17,7 +17,7 @@ const REF_ICON_COLORS: Record<string, string> = {
   HEAD: "#c75450",
 };
 
-function buildRefDisplayItems(refs: RefInfo[]): Array<{
+export function buildRefDisplayItems(refs: RefInfo[]): Array<{
   key: string;
   type: RefInfo["type"];
   label: string;
@@ -171,11 +171,16 @@ export function CommitRow({
   const isSelected = selectedCommitHashes.includes(commit.hash);
   const col = lane?.column ?? 0;
   const refItems = buildRefDisplayItems(commit.refs);
+  const hashVisible = visibleColumns?.hash !== false;
+  const dateVisible = visibleColumns?.date !== false;
+  const stickyDateRight = hashVisible ? columnWidths.hash : 0;
+  const stickyAuthorRight =
+    stickyDateRight + (dateVisible ? columnWidths.date : 0);
 
   return (
     <div
       ref={rowRef}
-      className={`selectable-row${isSelected ? " selected" : ""}`}
+      className={`selectable-row commit-row${isSelected ? " selected" : ""}`}
       onClick={(event) => onCommitClick(event, commit.hash)}
       onContextMenu={(e) => {
         if (onContextMenu) {
@@ -228,71 +233,69 @@ export function CommitRow({
           </Tooltip>
         </span>
         {refItems.length > 0 && (
-          <>
+          <span
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 4,
+              flexShrink: 0,
+              marginLeft: "auto",
+              paddingLeft: 8,
+            }}
+          >
+            {/* Overlapping outline tag icons */}
             <span
               style={{
                 display: "inline-flex",
-                alignItems: "center",
-                gap: 4,
-                flexShrink: 0,
-                marginLeft: "auto",
-                paddingLeft: 8,
+                position: "relative",
+                width: 16 + Math.max(0, (refItems.length - 1) * 5),
+                height: 16,
               }}
             >
-              {/* Overlapping outline tag icons */}
+              {refItems.map((item, idx) => {
+                const color =
+                  REF_ICON_COLORS[item.type] ?? REF_ICON_COLORS.branch;
+                return (
+                  <svg
+                    key={item.key}
+                    width="16"
+                    height="16"
+                    viewBox="0 0 16 16"
+                    fill="none"
+                    style={{ position: "absolute", left: idx * 5, top: 0 }}
+                  >
+                    <path
+                      d="M2.5 3.5C2.5 2.95 2.95 2.5 3.5 2.5H7.09c.27 0 .52.1.71.3l5.41 5.41c.39.39.39 1.02 0 1.41l-3.59 3.59c-.39.39-1.02.39-1.41 0L2.79 7.8a1 1 0 01-.29-.71V3.5z"
+                      fill="var(--app-bg, #fff)"
+                      stroke={color}
+                      strokeWidth="1.2"
+                    />
+                    <circle cx="5" cy="5" r="0.9" fill={color} />
+                  </svg>
+                );
+              })}
+            </span>
+            {/* Text labels (skip HEAD text) */}
+            <Tooltip
+              text={refItems
+                .filter((item) => item.type !== "HEAD")
+                .map((item) => item.label)
+                .join("  ")}
+            >
               <span
                 style={{
-                  display: "inline-flex",
-                  position: "relative",
-                  width: 16 + Math.max(0, (refItems.length - 1) * 5),
-                  height: 16,
+                  fontSize: "0.8em",
+                  whiteSpace: "nowrap",
+                  opacity: 0.85,
                 }}
               >
-                {refItems.map((item, idx) => {
-                  const color =
-                    REF_ICON_COLORS[item.type] ?? REF_ICON_COLORS.branch;
-                  return (
-                    <svg
-                      key={item.key}
-                      width="16"
-                      height="16"
-                      viewBox="0 0 16 16"
-                      fill="none"
-                      style={{ position: "absolute", left: idx * 5, top: 0 }}
-                    >
-                      <path
-                        d="M2.5 3.5C2.5 2.95 2.95 2.5 3.5 2.5H7.09c.27 0 .52.1.71.3l5.41 5.41c.39.39.39 1.02 0 1.41l-3.59 3.59c-.39.39-1.02.39-1.41 0L2.79 7.8a1 1 0 01-.29-.71V3.5z"
-                        fill="var(--app-bg, #fff)"
-                        stroke={color}
-                        strokeWidth="1.2"
-                      />
-                      <circle cx="5" cy="5" r="0.9" fill={color} />
-                    </svg>
-                  );
-                })}
-              </span>
-              {/* Text labels (skip HEAD text) */}
-              <Tooltip
-                text={refItems
+                {refItems
                   .filter((item) => item.type !== "HEAD")
                   .map((item) => item.label)
                   .join("  ")}
-              >
-                <span
-                  style={{
-                    fontSize: "0.8em",
-                    whiteSpace: "nowrap",
-                    opacity: 0.85,
-                  }}
-                >
-                  {refItems
-                    .filter((item) => item.type !== "HEAD")
-                    .map((item) => item.label)
-                    .join("  ")}
-                </span>
-              </Tooltip>
-            </span>
-          </>
+              </span>
+            </Tooltip>
+          </span>
         )}
       </span>
 
@@ -305,11 +308,15 @@ export function CommitRow({
             overflow: "hidden",
             textOverflow: "ellipsis",
             whiteSpace: "nowrap",
-            opacity: 0.7,
             paddingLeft: 8,
+            position: "sticky",
+            right: stickyAuthorRight,
+            zIndex: 1,
+            background:
+              "linear-gradient(var(--commit-row-bg, var(--app-bg)), var(--commit-row-bg, var(--app-bg))) var(--app-bg)",
           }}
         >
-          {commit.authorName}
+          <span style={{ opacity: 0.7 }}>{commit.authorName}</span>
         </span>
       )}
 
@@ -321,12 +328,18 @@ export function CommitRow({
             flexShrink: 0,
             width: columnWidths.date,
             textAlign: "right",
-            opacity: 0.5,
             paddingLeft: 8,
             whiteSpace: "nowrap",
+            position: "sticky",
+            right: stickyDateRight,
+            zIndex: 1,
+            background:
+              "linear-gradient(var(--commit-row-bg, var(--app-bg)), var(--commit-row-bg, var(--app-bg))) var(--app-bg)",
           }}
         >
-          {formatCommitDate(commit.authorDate)}
+          <span style={{ opacity: 0.5 }}>
+            {formatCommitDate(commit.authorDate)}
+          </span>
         </span>
       )}
 
@@ -339,13 +352,17 @@ export function CommitRow({
             overflow: "hidden",
             textOverflow: "ellipsis",
             whiteSpace: "nowrap",
-            opacity: 0.5,
             paddingLeft: 8,
             fontFamily: "monospace",
             fontSize: "0.9em",
+            position: "sticky",
+            right: 0,
+            zIndex: 1,
+            background:
+              "linear-gradient(var(--commit-row-bg, var(--app-bg)), var(--commit-row-bg, var(--app-bg))) var(--app-bg)",
           }}
         >
-          {commit.shortHash}
+          <span style={{ opacity: 0.5 }}>{commit.shortHash}</span>
         </span>
       )}
     </div>

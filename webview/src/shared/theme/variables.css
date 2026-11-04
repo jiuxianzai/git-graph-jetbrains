@@ -100,6 +100,22 @@ button:disabled {
   background: var(--selected-bg);
 }
 
+/* Commit rows need an opaque background so sticky author/date cells can
+   inherit it and hide the message scrolling underneath. */
+.commit-row {
+  --commit-row-bg: var(--app-bg);
+  background: var(--commit-row-bg);
+}
+.commit-row:hover {
+  --commit-row-bg: var(--hover-bg);
+}
+.commit-row.selected {
+  --commit-row-bg: var(--selected-bg);
+}
+.commit-row.selected:hover {
+  --commit-row-bg: var(--selected-bg);
+}
+
 .graph-line-path {
   transition: all 0.1s ease-in-out;
 }

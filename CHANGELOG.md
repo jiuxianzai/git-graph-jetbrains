@@ -1,5 +1,11 @@
 # Changelog / 更新日志
 
+## [0.4.25] - 2026-11-04
+
+### Changed / 调整
+- **Author/date are now pinned columns** — narrow windows no longer auto-hide the date (or author); they stay visible on the right / 作者和日期改为固定列：窄窗口不再自动隐藏日期/作者，始终显示在右侧
+- **Horizontal scrolling for long commit info** — the graph/message/refs area scrolls horizontally when it exceeds the panel, so long subjects and branch labels can be read instead of being clipped; the header scrolls in sync / 提交信息（图谱 + 消息 + 分支标签）超出面板宽度时可横向滚动查看，表头同步滚动，不再被裁掉
+
 ## [0.4.24] - 2026-11-04
 
 ### Changed / 调整
