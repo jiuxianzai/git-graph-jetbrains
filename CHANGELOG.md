@@ -1,6 +1,11 @@
 # Changelog / 更新日志
 
-## [0.4.36] - 2026-11-04
+## [0.4.37] - 2026-11-04
+
+### Changed / 调整
+- **Current branch pinned with a star** — removed the "当前分支：xxx" header; the current branch is now the first row under Local with a filled yellow star on the left, and no longer duplicated inside its folder / 移除「当前分支：xxx」标题行，当前分支固定排在「本地」第一位，左侧用黄色实心星标标记，不再在文件夹里重复出现
+
+## 0.4.36 - 2026-11-04
 
 ### Changed / 调整
 - **Default split adjusted** — branch tree 22%, details 24%, commit list the remaining 54% / 默认布局比例调整：分支树 22%、详情 24%，提交列表占剩余 54%
