@@ -1,6 +1,11 @@
 # Changelog / 更新日志
 
-## [0.4.35] - 2026-11-04
+## [0.4.36] - 2026-11-04
+
+### Changed / 调整
+- **Default split adjusted** — branch tree 22%, details 24%, commit list the remaining 54% / 默认布局比例调整：分支树 22%、详情 24%，提交列表占剩余 54%
+
+## 0.4.35 - 2026-11-04
 
 ### Changed / 调整
 - **Default JetGit column layout** — branch tree ≈18%, commit list ≈58%, details ≈24% of the panel width (matching the reference screenshot), with narrow-panel minimums / 默认布局按参考图比例：分支树约 18%、提交列表约 58%、详情约 24%，窄面板自动收缩

@@ -45,7 +45,7 @@ function ProgressBar({ visible }: { visible: boolean }) {
   );
 }
 
-const LAYOUT_LEFT_RATIO = 0.18;
+const LAYOUT_LEFT_RATIO = 0.22;
 const LAYOUT_RIGHT_RATIO = 0.24;
 
 function clampWidth(value: number, min: number, max: number): number {
