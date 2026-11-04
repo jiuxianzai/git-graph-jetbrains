@@ -101,4 +101,5 @@ export const zhCommit: Record<string, string> = {
   "Continuous integration": "持续集成",
   Chores: "杂项",
   Revert: "回滚",
+  "Drag to resize; double-click to reset": "拖动调整高度，双击恢复默认",
 };

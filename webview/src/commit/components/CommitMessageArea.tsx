@@ -11,6 +11,34 @@ import {
   detectCommitType,
 } from "../utils/commit-prefix";
 
+const MIN_AREA_HEIGHT = 150;
+const AREA_HEIGHT_STORAGE_KEY = "jetgit.commitMessageAreaHeight";
+
+function maxAreaHeight(): number {
+  return Math.max(MIN_AREA_HEIGHT, Math.round(window.innerHeight * 0.72));
+}
+
+function defaultAreaHeight(): number {
+  return Math.min(
+    maxAreaHeight(),
+    Math.max(MIN_AREA_HEIGHT, Math.round(window.innerHeight / 3)),
+  );
+}
+
+function clampAreaHeight(height: number): number {
+  return Math.min(maxAreaHeight(), Math.max(MIN_AREA_HEIGHT, height));
+}
+
+function readAreaHeight(): number {
+  try {
+    const saved = Number(localStorage.getItem(AREA_HEIGHT_STORAGE_KEY));
+    if (Number.isFinite(saved) && saved > 0) return clampAreaHeight(saved);
+  } catch {
+    // localStorage unavailable
+  }
+  return defaultAreaHeight();
+}
+
 export function CommitMessageArea() {
   const {
     commitMessage,
@@ -22,6 +50,10 @@ export function CommitMessageArea() {
     selectedFiles,
   } = useCommitStore();
 
+  const [areaHeight, setAreaHeight] = useState<number>(readAreaHeight);
+  const areaHeightRef = useRef(areaHeight);
+  const [isResizing, setIsResizing] = useState(false);
+  const resizeStartRef = useRef<{ y: number; height: number } | null>(null);
   const [showDropdown, setShowDropdown] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const [recentMessages, setRecentMessages] = useState<string[]>([]);
@@ -119,8 +151,86 @@ export function CommitMessageArea() {
     };
   }, [showHistory]);
 
+  const persistAreaHeight = useCallback((height: number) => {
+    try {
+      localStorage.setItem(AREA_HEIGHT_STORAGE_KEY, String(height));
+    } catch {
+      // localStorage unavailable
+    }
+  }, []);
+
+  const handleResizeStart = useCallback(
+    (e: React.PointerEvent<HTMLDivElement>) => {
+      e.preventDefault();
+      e.currentTarget.setPointerCapture(e.pointerId);
+      resizeStartRef.current = { y: e.clientY, height: areaHeight };
+      setIsResizing(true);
+    },
+    [areaHeight],
+  );
+
+  const handleResizeMove = useCallback(
+    (e: React.PointerEvent<HTMLDivElement>) => {
+      const start = resizeStartRef.current;
+      if (!start) return;
+      // Dragging the handle upward grows the message area.
+      const next = clampAreaHeight(start.height + (start.y - e.clientY));
+      areaHeightRef.current = next;
+      setAreaHeight(next);
+    },
+    [],
+  );
+
+  const handleResizeEnd = useCallback(
+    (e: React.PointerEvent<HTMLDivElement>) => {
+      if (!resizeStartRef.current) return;
+      resizeStartRef.current = null;
+      setIsResizing(false);
+      if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+        e.currentTarget.releasePointerCapture(e.pointerId);
+      }
+      persistAreaHeight(areaHeightRef.current);
+    },
+    [persistAreaHeight],
+  );
+
+  const handleResizeReset = useCallback(() => {
+    const height = defaultAreaHeight();
+    areaHeightRef.current = height;
+    setAreaHeight(height);
+    // Forget the custom height so the default keeps following the view size.
+    try {
+      localStorage.removeItem(AREA_HEIGHT_STORAGE_KEY);
+    } catch {
+      // localStorage unavailable
+    }
+  }, []);
+
+  // Keep the area usable when the window/view gets shorter.
+  useEffect(() => {
+    const handleWindowResize = () => {
+      const height = clampAreaHeight(areaHeightRef.current);
+      areaHeightRef.current = height;
+      setAreaHeight(height);
+    };
+    window.addEventListener("resize", handleWindowResize);
+    return () => window.removeEventListener("resize", handleWindowResize);
+  }, []);
+
   return (
-    <div className="commit-message-area">
+    <div className="commit-message-area" style={{ height: areaHeight }}>
+      <div
+        className={`commit-message-resizer${isResizing ? " dragging" : ""}`}
+        role="separator"
+        aria-orientation="horizontal"
+        aria-label={t("Drag to resize; double-click to reset")}
+        title={t("Drag to resize; double-click to reset")}
+        onPointerDown={handleResizeStart}
+        onPointerMove={handleResizeMove}
+        onPointerUp={handleResizeEnd}
+        onPointerCancel={handleResizeEnd}
+        onDoubleClick={handleResizeReset}
+      />
       <textarea
         ref={textareaRef}
         className="commit-message-textarea"

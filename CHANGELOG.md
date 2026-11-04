@@ -1,5 +1,10 @@
 # Changelog / 更新日志
 
+## [0.4.21] - 2026-11-04
+
+### Added / 新增
+- **Resizable commit message box** — the message area now defaults to about one third of the view height (min 150 px) instead of a fixed 60–150 px textarea; drag the grip above it to resize, double-click the grip to reset, and the height is remembered / 提交信息输入框默认占视图高度约 1/3（最小 150px），不再是固定的 60–150px；拖动上方把手可调整高度，双击把手恢复默认，并记住高度
+
 ## [0.4.20] - 2026-11-04
 
 ### Added / 新增
