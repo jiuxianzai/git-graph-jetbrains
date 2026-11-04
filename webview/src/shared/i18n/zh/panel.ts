@@ -137,4 +137,6 @@ export const zhPanel: Record<string, string> = {
   "Branch prefix": "分支前缀",
   None: "无",
   "New branch: {name}": "新分支：{name}",
+  "Rebase '{branch}' onto '{onto}'": "将“{branch}”变基到“{onto}”",
+  "Merge '{source}' into '{target}'": "将“{source}”合并到“{target}”",
 };

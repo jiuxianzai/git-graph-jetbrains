@@ -1,6 +1,11 @@
 # Changelog / 更新日志
 
-## [0.4.39] - 2026-11-04
+## [0.4.40] - 2026-11-04
+
+### Fixed / 修复
+- **Merge/Rebase menu labels no longer end with `?`** — the question mark belongs to the confirmation dialog, not the context-menu item / 合并/变基的右键菜单项不再以「?」结尾，问号只保留在实际的确认弹窗里
+
+## 0.4.39 - 2026-11-04
 
 ### Added / 新增
 - **Open the conflicting worktree from the checkout error** — when a branch is checked out in another worktree, JetGit now asks whether to open that folder in a new window / 检出失败时如果分支在另一个工作树中，会弹窗询问是否在新窗口打开该工作树

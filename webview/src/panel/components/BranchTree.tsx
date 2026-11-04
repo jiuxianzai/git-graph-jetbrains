@@ -1326,14 +1326,14 @@ function BranchContextMenu({
   if (!isCurrent) {
     items.push({ label: "", action: () => {}, separator: true });
     items.push({
-      label: t("Rebase '{branch}' onto '{onto}'?", {
+      label: t("Rebase '{branch}' onto '{onto}'", {
         branch: currentBranch,
         onto: branch.name,
       }),
       action: handleRebase,
     });
     items.push({
-      label: t("Merge '{source}' into '{target}'?", {
+      label: t("Merge '{source}' into '{target}'", {
         source: branch.name,
         target: currentBranch,
       }),
