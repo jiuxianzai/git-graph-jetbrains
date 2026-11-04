@@ -1,5 +1,29 @@
 # Changelog / 更新日志
 
+## [1.0.0] - 2026-11-05
+
+First release of the **jiuxianzai.jetgit** fork.
+
+### Added / 新增
+- **Full Simplified Chinese UI** with `jetgit.language` (`auto` / `en` / `zh-cn`)
+- **Prefix-grouped branch tree** (`feature/login` → `feature ▸ login`) and branch prefix picker in the New Branch dialog
+- **Current branch pinned to the top** with a yellow star; removed the old header row
+- **Conventional Commit type picker** in the commit box
+- **Resizable commit message area** (default ≈ 1/3 of the panel, drag handle, per-panel memory)
+- **Worktree-aware checkout**: explains conflicts and offers to open the other worktree in a new window
+
+### Changed / 调整
+- Headerless, more compact Git log; smaller typography; left-aligned columns; hash hidden by default
+- `今天 / 昨天 / YYYY/MM/DD HH:mm` date formatting
+- Graph + message scroll horizontally together while author/date stay pinned
+- Default panel split 22% / 54% / 24%, remembered per workspace
+- Renamed to `jiuxianzai.jetgit`; README rewritten with fork attribution and trademark disclaimer
+
+### Fixed / 修复
+- Double-clicking a commit file no longer selects its text
+- Merge/rebase context-menu labels no longer end with `?`
+- Checkout failures are surfaced instead of failing silently
+
 ## [0.4.40] - 2026-11-04
 
 ### Fixed / 修复

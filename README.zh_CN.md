@@ -1,153 +1,146 @@
-<a name="readme-top"></a>
-
 <div align="center">
 
-<img src="https://raw.githubusercontent.com/aotemj/jetbrains-git-graph/main/images/assets/logo-128.png" width="80" />
+<img src="https://raw.githubusercontent.com/jiuxianzai/jetbrains-git-graph/main/images/icon.png" width="96" />
 
-<h1>IntelliJ Git Graph - IDEA 风格分支与合并</h1>
+# JetGit
 
-IntelliJ IDEA 风格的 Git 可视化工具：提交图、分支管理、Cherry-Pick、Rebase 和三路合并编辑器。
+**把 IntelliJ 风格的 Git 图谱、提交面板与 Shelf 带到 VS Code / Cursor，并提供完整简体中文界面。**
 
-> 基于 [zhyc9de/jet-git](https://github.com/zhyc9de/jet-git) 的 Fork，新增完整的 IntelliJ IDEA 风格右键菜单和 UI 增强。
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
+[![VS Code](https://img.shields.io/badge/VS%20Code-%5E1.85.0-007ACC.svg)](https://code.visualstudio.com/)
 
-[English](./README.md) · **简体中文**
+[English](./README.md) · [简体中文](./README.zh_CN.md)
 
 </div>
 
 ---
 
-## 功能特性
+## ⚠️ 分支说明与署名
 
-### 分支右键菜单
+本仓库是**社区分支**，不是原始项目。
 
-右键任意分支即可执行 Checkout、创建、合并、Rebase、重命名、删除、Push、Pull 等操作，与 IntelliJ IDEA 体验一致。
+- **Fork 自：** [`aotemj/jetbrains-git-graph`](https://github.com/aotemj/jetbrains-git-graph)  
+  （本分支基于其 `0.4.17` 版本）
+- **上游最初来源：** [`zhyc9de/jet-git`](https://github.com/zhyc9de/jet-git)
+- **本分支仓库：** [`jiuxianzai/jetbrains-git-graph`](https://github.com/jiuxianzai/jetbrains-git-graph)
+- **插件市场 ID：** `jiuxianzai.jetgit`
 
-![分支 Checkout](https://raw.githubusercontent.com/aotemj/jetbrains-git-graph/main/images/checkout.gif)
+原始代码与界面的版权归上游作者所有。本分支保留 MIT 协议与原始版权声明
+（见 [`LICENSE`](./LICENSE)），并在其基础上做了下述修改。
 
-### 提交右键菜单
-
-右键任意提交即可复制 Hash、Cherry-Pick、Checkout、Reset、Revert、创建分支或标签。
-
-![提交右键菜单](https://raw.githubusercontent.com/aotemj/jetbrains-git-graph/main/images/commit-context-menu.gif)
-
-### 变更文件右键菜单
-
-右键变更文件面板中的文件：查看 Diff、编辑源文件、打开仓库版本、还原/Cherry-Pick 文件变更、复制路径。
-
-### Git 提交图
-
-![Git Graph](https://raw.githubusercontent.com/aotemj/jetbrains-git-graph/main/images/git-graph.png)
-
-- **分支树** — 按 Local / Remote / Tags 分组，支持搜索过滤；默认按 `feature/login` → `feature ▸ login` 前缀折叠成目录，新建分支时可选择 `feature/`、`bugfix/`、`hotfix/` 等前缀
-- **提交列表** — 彩色分支线，可调整列宽（Message、Author、Date、Hash）
-- **详情面板** — 提交信息和变更文件树
-- **过滤器** — 按分支、作者、日期范围过滤
-
-### 三路合并编辑器
-
-![三路合并编辑器](https://raw.githubusercontent.com/aotemj/jetbrains-git-graph/main/images/three-way-merge.png)
-
-- 三栏布局：Theirs | Result | Yours
-- 冲突高亮 + 逐块操作按钮
-- 完整语法高亮
-
-### 冲突管理
-
-![冲突列表](https://raw.githubusercontent.com/aotemj/jetbrains-git-graph/main/images/conflicts-list.png)
-
-- 快捷操作：接受 Yours / 接受 Theirs / 合并
-- 与 VS Code 源代码管理面板无缝集成
+**商标声明：** 本项目是独立、非官方项目，与 JetBrains s.r.o.、Microsoft
+Corporation、Anysphere（Cursor）**没有任何隶属、背书或赞助关系**。
+“JetBrains”“IntelliJ IDEA”“WebStorm”“PyCharm”“GoLand”“Rider” 是
+JetBrains s.r.o. 的商标；“Visual Studio Code” 是 Microsoft Corporation 的商标。
+相关名称仅用于说明兼容性与设计灵感。
 
 ---
 
-## 所有右键菜单操作
+## 相比上游仓库改了什么
 
-<details>
-<summary><b>分支（右键）</b></summary>
+对比 `aotemj/jetbrains-git-graph` 的 `0.4.17`：
 
-- Checkout — 切换分支
-- New Branch from... — 从选中分支创建新分支
-- Checkout and Rebase onto current — 切换并 Rebase 到当前分支
-- Rebase current onto branch — 将当前分支 Rebase 到选中分支
-- Merge into current — 合并到当前分支
-- Rename — 重命名（仅本地分支）
-- Delete — 删除（未合并时提示强制删除）
-- Update — 拉取远程更新
-- Push — 推送到远程
+| 方面 | 改动 |
+| --- | --- |
+| **多语言** | 完整英文 + 简体中文界面；新增 `jetgit.language` 设置（`auto` / `en` / `zh-cn`），`auto` 跟随 VS Code 显示语言；插件清单通过 `package.nls*.json` 本地化。 |
+| **分支树** | 按 `/` 前缀折叠成目录（`feature/login` → `feature ▸ login`），显示目录内分支数量与完整路径提示；目录分组默认开启，手动切平铺后会记住。 |
+| **当前分支** | 固定排在「本地」第一行，最左侧用**黄色实心星标**标记；移除顶部「当前分支：xxx」标题，且不再在文件夹中重复出现。 |
+| **新建分支** | 支持前缀选择：`feature/`、`bugfix/`、`hotfix/`、`release/`、`chore/`，记住上次选择；输入含 `/` 的名称按完整路径处理。 |
+| **提交信息框** | 默认约占面板高度 **1/3**，上方拖动把手可调整高度，双击恢复默认，并按面板记住高度。 |
+| **Conventional Commits** | 类型下拉框（`feat`、`fix`、`docs`、`style`、`refactor`、`perf`、`test`、`build`、`ci`、`chore`、`revert`），选中即写入 `type: ` 前缀；切换类型只替换前缀，保留 `(scope)` 与 `!`。 |
+| **日志布局** | 去掉表头；整体字号更小；作者/日期/哈希左对齐；哈希列默认不显示（工具栏眼睛菜单可开）；默认列宽比例 **分支树 22% / 提交列表 54% / 详情 24%**，按工作区记忆。 |
+| **日期** | 今天显示 `今天 HH:mm`，昨天显示 `昨天 HH:mm`，更早显示 `YYYY/MM/DD HH:mm`；悬停显示完整时间；作者/日期列按内容自动定宽。 |
+| **横向滚动** | 当日志确实放不下时，**图谱与消息一起横向滚动**，**作者/日期固定在右侧**；长分支标签在消息后显示，超出省略并可悬停查看。 |
+| **交互修复** | 提交面板双击文件不再选中文字；合并/变基右键菜单项不再以 `?` 结尾（问号只保留在确认弹窗中）。 |
+| **Worktree 检出** | 分支已在其他 worktree 检出时，给出明确提示并询问是否**在新窗口打开该 worktree**；未提交更改冲突也会说明原因，不再静默失败。 |
+| **打包** | 本分支重命名为 `jiuxianzai.jetgit`，以 `1.0.0` 作为分支首个发布版本。 |
 
-</details>
+其余能力（Git 图谱引擎、提交/Shelf 面板、三方合并编辑器、冲突管理、
+Cherry-Pick/Rebase/Merge、文件历史与右键菜单）均来自上游项目。
 
-<details>
-<summary><b>提交（右键）</b></summary>
+---
 
-- Copy Revision Number — 复制完整 Hash
-- Cherry-Pick — Cherry-Pick 该提交
-- Checkout Revision — 切换到该提交（Detached HEAD）
-- Reset Current Branch to Here — 重置当前分支（Mixed/Soft/Hard）
-- Revert Commit — 创建 Revert 提交
-- New Branch... — 从该提交创建分支
-- New Tag... — 在该提交创建标签
+## 截图
 
-</details>
+### Git 日志：中文界面、前缀目录、当前分支置顶
 
-<details>
-<summary><b>变更文件（右键）</b></summary>
+![Git 日志](https://raw.githubusercontent.com/jiuxianzai/jetbrains-git-graph/main/images/screenshots/git-log.png)
 
-- Show Diff — 打开 Diff 编辑器
-- Edit Source — 在编辑器中打开文件
-- Open Repository Version — 查看该提交时的文件版本
-- Revert Selected Changes — 还原文件到父提交状态
-- Cherry-Pick Selected Changes — 将文件变更应用到工作区
-- Copy Path — 复制文件路径
-- Copy File Name — 复制文件名
+### Conventional Commit 类型选择
 
-</details>
+![提交类型](https://raw.githubusercontent.com/jiuxianzai/jetbrains-git-graph/main/images/screenshots/commit-types.png)
+
+### 新建分支的前缀选择
+
+![分支前缀](https://raw.githubusercontent.com/jiuxianzai/jetbrains-git-graph/main/images/screenshots/branch-prefix.png)
+
+---
+
+## 继承自上游的功能
+
+- **Git 图谱**：分支车道、refs、标签、可折叠线性序列
+- **IDEA 风格提交面板**：更改列表、Shelf、Stash
+- **分支管理**：检出、新建、重命名、删除、推送、拉取、比较
+- **提交操作**：Cherry-Pick、Revert、Reset（soft/mixed/hard）、Drop Commit、建分支/标签
+- **三方合并编辑器**与冲突列表
+- **更改文件右键菜单**：查看差异、编辑源文件、打开仓库版本、复制路径
+- **文件历史**：编辑器/资源管理器右键查看
 
 ---
 
 ## 安装
 
-**从 Marketplace 安装：**
+**插件市场（本分支发布后）：**
 
-在 VS Code 扩展中搜索 **"IntelliJ Git Graph"** 即可安装。
+```
+ext install jiuxianzai.jetgit
+```
 
-**从 .vsix 安装：**
+或在扩展市场搜索 **JetGit**。
 
-1. 从 [Releases](https://github.com/aotemj/jetbrains-git-graph/releases) 下载最新 `.vsix`
-2. `Cmd+Shift+P` → "Extensions: Install from VSIX..."
+**从 VSIX 安装：**
 
-## 多语言
+```bash
+code --install-extension jetgit-1.0.0.vsix
+```
 
-界面内置**英文**和**简体中文**，默认跟随 VS Code 的显示语言。也可以通过
-`jetgit.language` 设置强制指定语言（`auto` / `en` / `zh-cn`）。
+> 如果之前安装过 `autemj.idea-like-git-graph`，两者 ID 不同，可以共存；
+> 建议只启用其中一个，避免出现重复的视图和右键菜单。
+
+---
+
+## 设置
+
+| 设置 | 可选值 | 默认 | 说明 |
+| --- | --- | --- | --- |
+| `jetgit.language` | `auto`、`en`、`zh-cn` | `auto` | 界面语言。`auto` 跟随 VS Code 显示语言；修改后会提示重载窗口。 |
+
+---
 
 ## 环境要求
 
-- VS Code 1.85.0+
-- Git 已安装并在 PATH 中
+- VS Code `1.85.0` 或更高
+- 已安装 Git，且 `git` 在 `PATH` 中
 
-## 本地开发
+---
+
+## 从源码构建
 
 ```bash
-git clone https://github.com/aotemj/jetbrains-git-graph.git
-cd jetbrains-git-graph
 pnpm install
 cd webview && pnpm install && cd ..
+
+pnpm run compile      # 类型检查 + lint + 扩展打包
+pnpm run build:web    # Webview 打包
+pnpm run vsce:package # 生成 .vsix
 ```
 
-按 **F5** 启动扩展开发宿主。
+---
 
-```bash
-pnpm run watch          # 监听模式
-pnpm run build          # 生产构建
-pnpm run vsce:package   # 打包为 .vsix
-```
+## 致谢与协议
 
-## 致谢
+- 最初项目：[`zhyc9de/jet-git`](https://github.com/zhyc9de/jet-git)
+- 本分支所基于的上游：[`aotemj/jetbrains-git-graph`](https://github.com/aotemj/jetbrains-git-graph)
+- 本分支：[`jiuxianzai/jetbrains-git-graph`](https://github.com/jiuxianzai/jetbrains-git-graph)
 
-- 原项目：[zhyc9de/jet-git](https://github.com/zhyc9de/jet-git)
-- 图标：[IntelliJ IDEA Icons](https://intellij-icons.jetbrains.design/)（Apache 2.0 许可）
-
-## 许可证
-
-[MIT](./LICENSE)
+MIT 协议，原始版权声明保留在 [`LICENSE`](./LICENSE) 中。

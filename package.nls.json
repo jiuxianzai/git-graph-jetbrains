@@ -1,6 +1,6 @@
 {
-  "displayName": "JetBrains Git - IntelliJ IDEA Git Graph, Commit & Shelf for VS Code",
-  "description": "Bring IntelliJ IDEA / JetBrains Git experience to VS Code & Cursor: Git graph visualization, IDEA-style commit panel with shelf/stash, branch management, cherry-pick, rebase, merge, 3-way merge editor, and context menus. The best JetBrains Git alternative for Visual Studio Code.",
+  "displayName": "JetGit — IntelliJ-style Git Graph, Commit & Shelf for VS Code",
+  "description": "A community fork of JetBrains Git for VS Code & Cursor with full Simplified Chinese UI, prefix-grouped branch tree, Conventional Commit type picker, resizable commit box and a compact, readable Git log.",
   "viewContainer.gitLog": "JetGit",
   "viewContainer.commit": "Commit",
   "view.gitLog": "Git Log",

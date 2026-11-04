@@ -22,3 +22,7 @@ CLAUDE.md
 **/.vscode-test.*
 images/assets/**
 images/*.gif
+demo/**
+images/screenshots/**
+*.vsix
+.idea/**

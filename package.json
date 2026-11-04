@@ -1,14 +1,14 @@
 {
-  "name": "idea-like-git-graph",
+  "name": "jetgit",
   "displayName": "%displayName%",
-  "publisher": "autemj",
+  "publisher": "jiuxianzai",
   "description": "%description%",
-  "version": "0.4.40",
+  "version": "1.0.0",
   "license": "MIT",
   "icon": "images/icon.png",
   "repository": {
     "type": "git",
-    "url": "https://github.com/aotemj/jetbrains-git-graph"
+    "url": "https://github.com/jiuxianzai/jetbrains-git-graph"
   },
   "engines": {
     "vscode": "^1.85.0"
@@ -37,7 +37,11 @@
     "webstorm",
     "pycharm",
     "goland",
-    "rider"
+    "rider",
+    "chinese",
+    "zh-cn",
+    "i18n",
+    "conventional commits"
   ],
   "main": "./dist/extension.js",
   "contributes": {
@@ -269,5 +273,9 @@
   "packageManager": "pnpm@10.18.2+sha512.9fb969fa749b3ade6035e0f109f0b8a60b5d08a1a87fdf72e337da90dcc93336e2280ca4e44f2358a649b83c17959e9993e777c2080879f3801e6f0d999ad3dd",
   "dependencies": {
     "node-diff3": "^3.2.0"
-  }
+  },
+  "bugs": {
+    "url": "https://github.com/jiuxianzai/jetbrains-git-graph/issues"
+  },
+  "homepage": "https://github.com/jiuxianzai/jetbrains-git-graph#readme"
 }
