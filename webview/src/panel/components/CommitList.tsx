@@ -8,12 +8,7 @@ import { usePanelStore } from "../../shared/store/panel-store";
 import type { Commit } from "../../shared/types/git";
 import { formatCommitDate } from "../utils/date";
 import { CommitContextMenu } from "./CommitContextMenu";
-import {
-  buildRefDisplayItems,
-  type ColumnWidths,
-  CommitRow,
-  ROW_HEIGHT,
-} from "./CommitRow";
+import { type ColumnWidths, CommitRow, ROW_HEIGHT } from "./CommitRow";
 import { CreateBranchDialog } from "./CreateBranchDialog";
 
 const COLUMN_WIDTH = 10;
@@ -75,43 +70,15 @@ export function CommitList({
   );
   const graphWidth = (maxColumn + 1) * COLUMN_WIDTH + GRAPH_PADDING * 2;
 
-  // Message content is measured so long subjects/refs can be reached by
-  // scrolling horizontally while author/date stay pinned on the right.
-  const messageWidth = useMemo(() => {
-    if (commits.length === 0) return 240;
-    const canvas = document.createElement("canvas");
-    const context = canvas.getContext("2d");
-    if (context) {
-      const style = getComputedStyle(document.body);
-      context.font = `${style.fontSize} ${style.fontFamily}`;
-    }
-    const measure = (text: string) =>
-      context ? context.measureText(text).width : text.length * 7;
-    let max = 0;
-    for (const commit of commits) {
-      const items = buildRefDisplayItems(commit.refs).filter(
-        (item) => item.type !== "HEAD",
-      );
-      let refsWidth = 0;
-      if (items.length > 0) {
-        const labels = items.map((item) => item.label).join("  ");
-        refsWidth =
-          16 + Math.max(0, items.length - 1) * 5 + 4 + measure(labels) + 6;
-      }
-      max = Math.max(max, measure(commit.subject) + refsWidth);
-    }
-    return Math.min(1000, Math.max(200, Math.ceil(max) + 24));
-  }, [commits]);
-
   const fixedWidth =
     (visibleColumns.author ? columnWidths.author : 0) +
     (visibleColumns.date ? columnWidths.date : 0) +
-    (visibleColumns.hash ? columnWidths.hash : 0) +
-    16 * Number(visibleColumns.author) +
-    16 * Number(visibleColumns.date) +
-    16 * Number(visibleColumns.hash);
-  const totalWidth = graphWidth + NODE_TEXT_GAP + messageWidth + fixedWidth + 8;
-  const rowWidth = totalWidth;
+    (visibleColumns.hash ? columnWidths.hash : 0);
+  // Keep a readable message column; only scroll horizontally when the panel is
+  // too narrow for graph + message + author/date. Long messages still ellipsize.
+  const MIN_MESSAGE_WIDTH = 160;
+  const rowWidth =
+    graphWidth + NODE_TEXT_GAP + MIN_MESSAGE_WIDTH + fixedWidth + 8;
 
   // Fit the author/date columns to their widest content so names and dates are
   // never wrapped or ellipsized. Manual resizing wins once the user drags.

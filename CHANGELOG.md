@@ -1,5 +1,12 @@
 # Changelog / 更新日志
 
+## [0.4.27] - 2026-11-04
+
+### Fixed / 修复
+- **No unnecessary horizontal scrolling** — the list no longer grows to the widest commit/refs; it only scrolls when the panel is narrower than graph + a 160 px message column + author/date, so normal windows show everything without scrolling / 不再按最长提交内容撑宽列表：只有面板连「图谱 + 160px 消息列 + 作者/日期」都放不下时才横向滚动
+- **Branch labels visible without scrolling to the end** — refs follow the commit subject instead of being pushed to the far right edge of the row / 分支/标签紧跟提交信息显示，不再被推到行最右侧、不需要滚到底才能看到
+- **Pinned graph gutter** — the branch graph stays fixed on the left while commit info scrolls / 分支图谱固定在左侧，不随横向滚动消失
+
 ## [0.4.26] - 2026-11-04
 
 ### Changed / 调整
