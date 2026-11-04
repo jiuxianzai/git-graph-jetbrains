@@ -1,5 +1,10 @@
 # Changelog / 更新日志
 
+## [0.4.31] - 2026-11-04
+
+### Changed / 调整
+- **Readable branch label on narrow panels** — instead of hiding the label, show its leaf name (`feature/building_block` → `building_block`, `origin & release` → `release`) with ellipsis and a full-name tooltip / 窄面板不再只显示图标：改为显示分支名的末段（`feature/building_block` → `building_block`，`origin & release` → `release`），超长省略，悬停看全名
+
 ## [0.4.30] - 2026-11-04
 
 ### Changed / 调整

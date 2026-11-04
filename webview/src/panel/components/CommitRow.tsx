@@ -174,6 +174,12 @@ export function CommitRow({
     (item) => item.type !== "HEAD",
   );
   const refLabel = refItems.map((item) => item.label).join(" & ");
+  // Narrow panels show the leaf name only (feature/x → x, origin & x → x).
+  const compactRefLabel =
+    refLabel
+      .replace(/^[^&]*&\s*/, "")
+      .split("/")
+      .pop() || refLabel;
   const primaryRefType = refItems[0]?.type ?? "branch";
 
   return (
@@ -246,7 +252,7 @@ export function CommitRow({
               alignItems: "center",
               flexShrink: 1,
               minWidth: 0,
-              maxWidth: compactRefs ? 24 : "50%",
+              maxWidth: compactRefs ? 96 : "50%",
               overflow: "hidden",
               marginLeft: 8,
               paddingLeft: 8,
@@ -286,20 +292,19 @@ export function CommitRow({
                     }
                   />
                 </svg>
-                {!compactRefs && (
-                  <span
-                    style={{
-                      fontSize: "0.8em",
-                      whiteSpace: "nowrap",
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      opacity: 0.85,
-                      minWidth: 0,
-                    }}
-                  >
-                    {refLabel}
-                  </span>
-                )}
+                <span
+                  title={refLabel}
+                  style={{
+                    fontSize: "0.8em",
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    opacity: 0.85,
+                    minWidth: 0,
+                  }}
+                >
+                  {compactRefs ? compactRefLabel : refLabel}
+                </span>
               </span>
             </Tooltip>
           </span>
