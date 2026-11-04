@@ -1,5 +1,11 @@
 # Changelog / 更新日志
 
+## [0.4.35] - 2026-11-04
+
+### Changed / 调整
+- **Default JetGit column layout** — branch tree ≈18%, commit list ≈58%, details ≈24% of the panel width (matching the reference screenshot), with narrow-panel minimums / 默认布局按参考图比例：分支树约 18%、提交列表约 58%、详情约 24%，窄面板自动收缩
+- **Layout remembered per project** — dragging the split handles stores the widths under a workspace-scoped key, so each project keeps its own JetGit layout / 每个项目的布局独立记忆：拖动分栏后按工作区分别保存，各项目互不影响
+
 ## [0.4.34] - 2026-11-04
 
 ### Changed / 调整

@@ -1,5 +1,5 @@
 import { Allotment } from "allotment";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import "allotment/dist/style.css";
 import { Tooltip } from "../shared/components/Tooltip";
 import "../shared/components/Tooltip.css";
@@ -45,6 +45,36 @@ function ProgressBar({ visible }: { visible: boolean }) {
   );
 }
 
+const LAYOUT_LEFT_RATIO = 0.18;
+const LAYOUT_RIGHT_RATIO = 0.24;
+
+function clampWidth(value: number, min: number, max: number): number {
+  return Math.max(min, Math.min(max, Math.round(value)));
+}
+
+function layoutStorageKey(): string {
+  const workspace =
+    document.getElementById("root")?.dataset.workspace ?? "default";
+  return `jetgit.layout:${workspace}`;
+}
+
+function readLayout(): { left?: number; right?: number } | null {
+  try {
+    const raw = localStorage.getItem(layoutStorageKey());
+    return raw ? (JSON.parse(raw) as { left?: number; right?: number }) : null;
+  } catch {
+    return null;
+  }
+}
+
+function defaultLeftWidth(): number {
+  return clampWidth(window.innerWidth * LAYOUT_LEFT_RATIO, 120, 420);
+}
+
+function defaultRightWidth(): number {
+  return clampWidth(window.innerWidth * LAYOUT_RIGHT_RATIO, 140, 560);
+}
+
 export function PanelApp() {
   const loading = usePanelStore((s) => s.loading);
   const commits = usePanelStore((s) => s.commits);
@@ -53,7 +83,25 @@ export function PanelApp() {
 
   const [showLeft, setShowLeft] = useState(true);
   const [showRight, setShowRight] = useState(true);
-  const [leftWidth, setLeftWidth] = useState(330);
+  const savedLayout = useRef(readLayout()).current;
+  const [leftWidth, setLeftWidth] = useState(
+    savedLayout?.left ?? defaultLeftWidth,
+  );
+  const [rightWidth, setRightWidth] = useState(
+    savedLayout?.right ?? defaultRightWidth,
+  );
+  const leftWidthRef = useRef(leftWidth);
+  leftWidthRef.current = leftWidth;
+  const rightWidthRef = useRef(rightWidth);
+  rightWidthRef.current = rightWidth;
+
+  const saveLayout = useCallback((left: number, right: number) => {
+    try {
+      localStorage.setItem(layoutStorageKey(), JSON.stringify({ left, right }));
+    } catch {
+      // localStorage unavailable
+    }
+  }, []);
 
   const toggleLeft = useCallback(() => setShowLeft((v) => !v), []);
   const toggleRight = useCallback(() => setShowRight((v) => !v), []);
@@ -74,11 +122,12 @@ export function PanelApp() {
       const onUp = () => {
         document.removeEventListener("mousemove", onMove);
         document.removeEventListener("mouseup", onUp);
+        saveLayout(leftWidthRef.current, rightWidthRef.current);
       };
       document.addEventListener("mousemove", onMove);
       document.addEventListener("mouseup", onUp);
     },
-    [leftWidth],
+    [leftWidth, saveLayout],
   );
 
   const middleRef = usePreventSelect();
@@ -192,8 +241,16 @@ export function PanelApp() {
 
         {/* Middle + Right in Allotment */}
         <div style={{ flex: 1, minWidth: 0 }}>
-          <Allotment proportionalLayout={false}>
-            <Allotment.Pane minSize={400}>
+          <Allotment
+            proportionalLayout={false}
+            onChange={(sizes) => {
+              const right = Math.round(sizes[1] ?? rightWidthRef.current);
+              if (right === rightWidthRef.current) return;
+              setRightWidth(right);
+              saveLayout(leftWidthRef.current, right);
+            }}
+          >
+            <Allotment.Pane minSize={180}>
               <div
                 ref={middleRef}
                 style={{
@@ -207,8 +264,8 @@ export function PanelApp() {
               </div>
             </Allotment.Pane>
             <Allotment.Pane
-              preferredSize={350}
-              minSize={showRight ? 250 : 28}
+              preferredSize={rightWidth}
+              minSize={showRight ? 140 : 28}
               maxSize={showRight ? 600 : 28}
               visible
             >

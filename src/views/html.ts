@@ -16,8 +16,13 @@ export function getWebviewHtml(
   );
   const nonce = getNonce();
   const locale = getLocale();
+  const workspaceKey = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath ?? "";
 
-  const dataAttrs = [`data-mode="${mode}"`, `data-locale="${locale}"`];
+  const dataAttrs = [
+    `data-mode="${mode}"`,
+    `data-locale="${locale}"`,
+    `data-workspace="${escapeHtml(workspaceKey)}"`,
+  ];
   if (extra) {
     for (const [key, value] of Object.entries(extra)) {
       dataAttrs.push(`data-${key}="${escapeHtml(value)}"`);
