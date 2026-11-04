@@ -200,7 +200,8 @@ export const usePanelStore = create<PanelStore>((set, get) => ({
   hoveredColumn: null,
   commitFiles: [],
   selectedFilePath: null,
-  visibleColumns: { author: true, date: true, hash: true },
+  // Hash is noisy on small screens; enabled from the column menu when needed.
+  visibleColumns: { author: true, date: true, hash: false },
   rangeOldest: null,
   rangeNewest: null,
   selectedBranches: [],

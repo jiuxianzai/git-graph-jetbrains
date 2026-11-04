@@ -25,9 +25,9 @@ const HEADER_TEXT_STYLE: React.CSSProperties = {
 };
 
 const DEFAULT_COLUMN_WIDTHS: ColumnWidths = {
-  author: 100,
-  date: 130,
-  hash: 70,
+  author: 88,
+  date: 112,
+  hash: 64,
 };
 
 export function CommitList({
@@ -45,6 +45,8 @@ export function CommitList({
   const selectCommit = usePanelStore((s) => s.selectCommit);
 
   const parentRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [listWidth, setListWidth] = useState(0);
   const [columnWidths, setColumnWidths] = useState<ColumnWidths>(
     DEFAULT_COLUMN_WIDTHS,
   );
@@ -84,6 +86,37 @@ export function CommitList({
     ...Object.values(graphLayout).map((l) => l.column),
   );
   const graphWidth = (maxColumn + 1) * COLUMN_WIDTH + GRAPH_PADDING * 2;
+
+  // Track the list width so narrow panels can drop trailing columns instead of
+  // squeezing the message column to zero.
+  useEffect(() => {
+    const element = containerRef.current;
+    if (!element) return;
+    const observer = new ResizeObserver((entries) => {
+      setListWidth(entries[0]?.contentRect.width ?? element.clientWidth);
+    });
+    observer.observe(element);
+    setListWidth(element.clientWidth);
+    return () => observer.disconnect();
+  }, []);
+
+  const effectiveColumns = useMemo<VisibleColumns>(() => {
+    const next = { ...visibleColumns };
+    if (!listWidth) return next;
+    const MIN_MESSAGE_WIDTH = 120;
+    const fixedWidth = () =>
+      (next.author ? columnWidths.author : 0) +
+      (next.date ? columnWidths.date : 0) +
+      (next.hash ? columnWidths.hash : 0);
+    const available = listWidth - graphWidth - 16;
+    // Drop the least important columns first until the message keeps its room.
+    for (const key of ["hash", "date", "author"] as const) {
+      if (!next[key]) continue;
+      if (available - fixedWidth() >= MIN_MESSAGE_WIDTH) break;
+      next[key] = false;
+    }
+    return next;
+  }, [visibleColumns, listWidth, graphWidth, columnWidths]);
 
   // Compute per-row max column considering ALL lanes passing through each row
   const rowMaxColumns = useMemo(() => {
@@ -310,6 +343,7 @@ export function CommitList({
 
   return (
     <div
+      ref={containerRef}
       style={{
         display: "flex",
         flexDirection: "column",
@@ -351,7 +385,7 @@ export function CommitList({
         >
           {t("Message")}
         </span>
-        {visibleColumns.author && (
+        {effectiveColumns.author && (
           <>
             <ColumnResizeHandle
               active={resizing === "author"}
@@ -371,7 +405,7 @@ export function CommitList({
             </span>
           </>
         )}
-        {visibleColumns.date && (
+        {effectiveColumns.date && (
           <>
             <ColumnResizeHandle
               active={resizing === "date"}
@@ -392,7 +426,7 @@ export function CommitList({
             </span>
           </>
         )}
-        {visibleColumns.hash && (
+        {effectiveColumns.hash && (
           <>
             <ColumnResizeHandle
               active={resizing === "hash"}
@@ -464,7 +498,7 @@ export function CommitList({
                   lane={lane}
                   rowMaxColumn={rowMaxColumns[commit.hash] ?? 0}
                   columnWidths={columnWidths}
-                  visibleColumns={visibleColumns}
+                  visibleColumns={effectiveColumns}
                   onCommitClick={handleCommitClick}
                   onContextMenu={handleContextMenu}
                 />

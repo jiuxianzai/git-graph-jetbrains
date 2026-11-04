@@ -1,5 +1,12 @@
 # Changelog / 更新日志
 
+## [0.4.23] - 2026-11-04
+
+### Changed / 调整
+- **Hash column hidden by default** — enable it again from the column menu when needed / Git 日志默认不显示哈希列，需要时可在列表头右键菜单开启
+- **Date format** — commit dates now use `YYYY/MM/DD HH:mm` (e.g. `2026/11/04 12:05`) in the list and detail panel / 提交日期改为 `YYYY/MM/DD HH:mm`（如 `2026/11/04 12:05`），列表和详情统一
+- **More room for the message column** — author/date default widths reduced, and on narrow panels trailing columns (hash → date → author) are dropped automatically until the message keeps at least 120 px / 消息列占比加大：作者/日期默认宽度收窄；面板变窄时按「哈希 → 日期 → 作者」顺序自动隐藏，保证消息列至少保留 120px
+
 ## [0.4.22] - 2026-11-04
 
 ### Fixed / 修复
