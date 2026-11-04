@@ -1,5 +1,11 @@
 # Changelog / 更新日志
 
+## [0.4.22] - 2026-11-04
+
+### Fixed / 修复
+- **Commit panel: double-click no longer selects file text** — file rows use `user-select: none`, so opening a diff by double-click leaves no stray text selection / 提交面板双击文件打开差异时，不再顺带选中文件名文字
+- **Git Log header labels wrap in narrow windows** — Message/Author/Date/Hash headers now stay on one line with ellipsis and a full-label tooltip, so 消息 no longer breaks into a vertical stack / Git 日志表头在窗口变窄时不再换行：消息/作者/日期/哈希保持单行、超出显示省略号，并可 hover 查看完整名称
+
 ## [0.4.21] - 2026-11-04
 
 ### Added / 新增

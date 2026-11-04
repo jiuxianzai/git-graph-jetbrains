@@ -18,6 +18,12 @@ import { CreateBranchDialog } from "./CreateBranchDialog";
 const COLUMN_WIDTH = 16;
 const GRAPH_PADDING = 8;
 
+const HEADER_TEXT_STYLE: React.CSSProperties = {
+  whiteSpace: "nowrap",
+  overflow: "hidden",
+  textOverflow: "ellipsis",
+};
+
 const DEFAULT_COLUMN_WIDTHS: ColumnWidths = {
   author: 100,
   date: 130,
@@ -331,9 +337,20 @@ export function CommitList({
           position: "relative",
           zIndex: 3,
           background: "var(--app-bg, #1e1e1e)",
+          overflow: "hidden",
         }}
       >
-        <span style={{ flex: 1, paddingRight: 4 }}>{t("Message")}</span>
+        <span
+          title={t("Message")}
+          style={{
+            ...HEADER_TEXT_STYLE,
+            flex: 1,
+            minWidth: 0,
+            paddingRight: 4,
+          }}
+        >
+          {t("Message")}
+        </span>
         {visibleColumns.author && (
           <>
             <ColumnResizeHandle
@@ -341,10 +358,13 @@ export function CommitList({
               onMouseDown={(e) => startResize("author", e)}
             />
             <span
+              title={t("Author")}
               style={{
+                ...HEADER_TEXT_STYLE,
                 flexShrink: 0,
                 width: columnWidths.author,
                 paddingLeft: 8,
+                boxSizing: "border-box",
               }}
             >
               {t("Author")}
@@ -358,11 +378,14 @@ export function CommitList({
               onMouseDown={(e) => startResize("date", e)}
             />
             <span
+              title={t("Date")}
               style={{
+                ...HEADER_TEXT_STYLE,
                 flexShrink: 0,
                 width: columnWidths.date,
                 textAlign: "right",
                 paddingLeft: 8,
+                boxSizing: "border-box",
               }}
             >
               {t("Date")}
@@ -376,10 +399,13 @@ export function CommitList({
               onMouseDown={(e) => startResize("hash", e)}
             />
             <span
+              title={t("Hash")}
               style={{
+                ...HEADER_TEXT_STYLE,
                 flexShrink: 0,
                 width: columnWidths.hash,
                 paddingLeft: 8,
+                boxSizing: "border-box",
               }}
             >
               {t("Hash")}

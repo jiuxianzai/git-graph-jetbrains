@@ -255,6 +255,8 @@
   gap: 4px;
   min-height: 26px;
   box-sizing: border-box;
+  /* Double-click opens the diff; never select the row text as a side effect. */
+  user-select: none;
 }
 
 .commit-file-item:hover {
