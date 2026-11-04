@@ -35,6 +35,11 @@ function withProgress(
   });
 }
 
+function worktreePathFromError(err: unknown): string | undefined {
+  const message = err instanceof Error ? err.message : String(err);
+  return message.match(/already used by worktree at '([^']+)'/)?.[1];
+}
+
 function describeCheckoutError(err: unknown, branchName: string): string {
   const message = err instanceof Error ? err.message : String(err);
   const worktree = message.match(/already used by worktree at '([^']+)'/);
@@ -625,6 +630,26 @@ export function activate(context: vscode.ExtensionContext) {
       try {
         await gitService.checkout(branchName);
       } catch (err) {
+        const worktreePath = worktreePathFromError(err);
+        if (worktreePath) {
+          const openLabel = t("Open Worktree in New Window");
+          const choice = await vscode.window.showWarningMessage(
+            t('Branch "{branch}" is checked out in another worktree:\n{path}', {
+              branch: branchName,
+              path: worktreePath,
+            }),
+            { modal: true },
+            openLabel,
+          );
+          if (choice === openLabel) {
+            await vscode.commands.executeCommand(
+              "vscode.openFolder",
+              vscode.Uri.file(worktreePath),
+              { forceNewWindow: true },
+            );
+          }
+          return { success: false };
+        }
         throw new Error(describeCheckoutError(err, branchName));
       }
       messageRouter.broadcastEvent("gitStateChanged", { scope: "all" });

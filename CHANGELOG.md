@@ -1,6 +1,11 @@
 # Changelog / 更新日志
 
-## [0.4.38] - 2026-11-04
+## [0.4.39] - 2026-11-04
+
+### Added / 新增
+- **Open the conflicting worktree from the checkout error** — when a branch is checked out in another worktree, JetGit now asks whether to open that folder in a new window / 检出失败时如果分支在另一个工作树中，会弹窗询问是否在新窗口打开该工作树
+
+## 0.4.38 - 2026-11-04
 
 ### Fixed / 修复
 - **Checkout failures are now explained** — the extension shows a clear error instead of failing silently, including the common "branch is already checked out in another worktree" case with the conflicting path, and uncommitted-changes conflicts / 检出失败不再静默：会弹出明确错误，包括「该分支已在另一个工作树中检出」及对应路径，以及未提交更改会被覆盖的情况

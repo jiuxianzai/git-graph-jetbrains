@@ -6,6 +6,10 @@ export type Locale = "en" | "zh-cn";
  * Extension-host strings, keyed by their English source text.
  */
 const zhCN: Record<string, string> = {
+  'Branch "{branch}" is checked out in another worktree:\n{path}':
+    "分支“{branch}”已在另一个工作树中检出：\n{path}\n\n是否在新窗口打开该工作树？",
+  "Open Worktree in New Window": "在新窗口打开工作树",
+  Cancel: "取消",
   'Branch "{branch}" is already checked out in another worktree:\n{path}\n\nOpen that folder, or create a new local branch here.':
     "分支“{branch}”已在另一个工作树中检出：\n{path}\n\n请打开那个目录，或在这里新建一个本地分支。",
   'Cannot check out "{branch}": you have uncommitted changes that would be overwritten. Commit or stash them first.':
