@@ -1,5 +1,13 @@
 # Changelog / 更新日志
 
+## [0.4.26] - 2026-11-04
+
+### Changed / 调整
+- **Smaller UI font** — JetGit base font is one pixel smaller than the VS Code font / JetGit 整体字体比 VS Code 字体小 1px
+- **Removed the Git Log table header** — no more 消息/作者/日期 header row; column visibility stays in the toolbar eye menu / 移除 Git 日志表头（消息/作者/日期），列显示仍可在工具栏眼睛菜单里切换
+- **Left-aligned table content** — author, date and hash are left-aligned / 作者、日期、哈希列内容统一左对齐
+- **Pinned branch graph** — the graph gutter no longer scrolls with the message area; horizontal scrolling now reveals long commit info while branch lines stay put, and the list always starts at the left edge / 最左侧分支图谱固定不随横向滚动移动；横向滚动只移动提交信息，列表初始位置固定在左端
+
 ## [0.4.25] - 2026-11-04
 
 ### Changed / 调整

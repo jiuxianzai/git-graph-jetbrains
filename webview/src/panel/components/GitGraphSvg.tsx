@@ -447,8 +447,8 @@ export function GitGraphSvg({
         position: "absolute",
         top: topOffset,
         left: 0,
+        zIndex: 5,
         pointerEvents: "none",
-        zIndex: 2,
       }}
       aria-hidden="true"
     >

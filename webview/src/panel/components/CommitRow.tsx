@@ -5,8 +5,6 @@ import type { Commit, LaneInfo, RefInfo } from "../../shared/types/git";
 import { formatCommitDate, formatFullDateTime } from "../utils/date";
 
 export const ROW_HEIGHT = 28;
-const COLUMN_WIDTH = 10;
-const GRAPH_PADDING = 6;
 const NODE_TEXT_GAP = 14;
 
 /** Tag icon colors matching IDEA */
@@ -150,7 +148,7 @@ export interface VisibleColumns {
 export function CommitRow({
   commit,
   lane,
-  rowMaxColumn,
+  graphWidth,
   columnWidths,
   visibleColumns,
   onCommitClick,
@@ -158,7 +156,7 @@ export function CommitRow({
 }: {
   commit: Commit;
   lane: LaneInfo | undefined;
-  rowMaxColumn: number;
+  graphWidth: number;
   columnWidths: ColumnWidths;
   visibleColumns?: VisibleColumns;
   onCommitClick: (event: React.MouseEvent, hash: string) => void;
@@ -195,12 +193,25 @@ export function CommitRow({
         display: "flex",
         alignItems: "center",
         height: ROW_HEIGHT,
-        paddingLeft:
-          GRAPH_PADDING + (rowMaxColumn + 1) * COLUMN_WIDTH + NODE_TEXT_GAP,
         paddingRight: 8,
         color: isSelected ? "var(--selected-fg)" : "inherit",
       }}
     >
+      {/* Pinned graph gutter – keeps branch lines in place while the
+          message area scrolls horizontally. */}
+      <span
+        aria-hidden="true"
+        style={{
+          width: graphWidth + NODE_TEXT_GAP,
+          flexShrink: 0,
+          alignSelf: "stretch",
+          position: "sticky",
+          left: 0,
+          zIndex: 2,
+          background:
+            "linear-gradient(var(--commit-row-bg, var(--app-bg)), var(--commit-row-bg, var(--app-bg))) var(--app-bg)",
+        }}
+      />
       {/* Subject + refs column (flex) */}
       <span
         style={{
@@ -327,7 +338,7 @@ export function CommitRow({
           style={{
             flexShrink: 0,
             width: columnWidths.date,
-            textAlign: "right",
+            textAlign: "left",
             paddingLeft: 8,
             whiteSpace: "nowrap",
             position: "sticky",

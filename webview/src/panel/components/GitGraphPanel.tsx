@@ -5,7 +5,6 @@ import { GitGraphSvg } from "./GitGraphSvg";
 export function GitGraphPanel() {
   const [scrollTop, setScrollTop] = useState(0);
   const [containerHeight, setContainerHeight] = useState(600);
-  const [headerHeight, setHeaderHeight] = useState(0);
   const containerRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -23,7 +22,7 @@ export function GitGraphPanel() {
     return () => ro.disconnect();
   }, []);
 
-  const svgHeight = containerHeight - headerHeight;
+  const svgHeight = containerHeight;
 
   return (
     <div
@@ -36,11 +35,11 @@ export function GitGraphPanel() {
         minHeight: 0,
       }}
     >
-      <CommitList onScroll={setScrollTop} onHeaderHeight={setHeaderHeight} />
+      <CommitList onScroll={setScrollTop} />
       <GitGraphSvg
         scrollTop={scrollTop}
         height={svgHeight > 0 ? svgHeight : 0}
-        topOffset={headerHeight}
+        topOffset={0}
       />
     </div>
   );

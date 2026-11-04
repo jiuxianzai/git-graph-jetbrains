@@ -13,19 +13,12 @@ import {
   type ColumnWidths,
   CommitRow,
   ROW_HEIGHT,
-  type VisibleColumns,
 } from "./CommitRow";
 import { CreateBranchDialog } from "./CreateBranchDialog";
 
-const COLUMN_WIDTH = 16;
-const GRAPH_PADDING = 8;
+const COLUMN_WIDTH = 10;
+const GRAPH_PADDING = 6;
 const NODE_TEXT_GAP = 14;
-
-const HEADER_TEXT_STYLE: React.CSSProperties = {
-  whiteSpace: "nowrap",
-  overflow: "hidden",
-  textOverflow: "ellipsis",
-};
 
 const DEFAULT_COLUMN_WIDTHS: ColumnWidths = {
   author: 88,
@@ -35,10 +28,8 @@ const DEFAULT_COLUMN_WIDTHS: ColumnWidths = {
 
 export function CommitList({
   onScroll,
-  onHeaderHeight,
 }: {
   onScroll?: (scrollTop: number) => void;
-  onHeaderHeight?: (height: number) => void;
 }) {
   const visibleCommits = usePanelStore((s) => s.visibleCommits);
   const commits = usePanelStore((s) => s.commits);
@@ -49,21 +40,11 @@ export function CommitList({
   const selectCommit = usePanelStore((s) => s.selectCommit);
 
   const parentRef = useRef<HTMLDivElement>(null);
-  const headerRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const [verticalScrollbarWidth, setVerticalScrollbarWidth] = useState(0);
   const [columnWidths, setColumnWidths] = useState<ColumnWidths>(
     DEFAULT_COLUMN_WIDTHS,
   );
   const visibleColumns = usePanelStore((s) => s.visibleColumns);
-  const [headerMenu, setHeaderMenu] = useState<{
-    x: number;
-    y: number;
-  } | null>(null);
-  const columnWidthsRef = useRef(columnWidths);
-  columnWidthsRef.current = columnWidths;
-  // Once the user drags a divider we stop auto-fitting that column.
-  const userResizedRef = useRef({ author: false, date: false, hash: false });
 
   const [contextMenu, setContextMenu] = useState<{
     x: number;
@@ -132,25 +113,6 @@ export function CommitList({
   const totalWidth = graphWidth + NODE_TEXT_GAP + messageWidth + fixedWidth + 8;
   const rowWidth = totalWidth;
 
-  // The header has no scrollbar, so pad it by the body's scrollbar width to
-  // keep sticky header labels aligned with the rows.
-  // biome-ignore lint/correctness/useExhaustiveDependencies: re-measure when the content width changes
-  useEffect(() => {
-    const element = parentRef.current;
-    if (!element) return;
-    setVerticalScrollbarWidth(
-      Math.max(0, element.offsetWidth - element.clientWidth),
-    );
-  }, [rowWidth]);
-
-  const stickyRight = {
-    hash: 0,
-    date: visibleColumns.hash ? columnWidths.hash : 0,
-    author:
-      (visibleColumns.hash ? columnWidths.hash : 0) +
-      (visibleColumns.date ? columnWidths.date : 0),
-  };
-
   // Fit the author/date columns to their widest content so names and dates are
   // never wrapped or ellipsized. Manual resizing wins once the user drags.
   const contentWidths = useMemo(() => {
@@ -181,101 +143,21 @@ export function CommitList({
 
   useEffect(() => {
     setColumnWidths((previous) => {
-      const next = { ...previous };
-      if (!userResizedRef.current.author) next.author = contentWidths.author;
-      if (!userResizedRef.current.date) next.date = contentWidths.date;
-      if (next.author === previous.author && next.date === previous.date) {
+      if (
+        previous.author === contentWidths.author &&
+        previous.date === contentWidths.date
+      ) {
         return previous;
       }
-      return next;
+      return {
+        ...previous,
+        author: contentWidths.author,
+        date: contentWidths.date,
+      };
     });
   }, [contentWidths]);
 
   // Compute per-row max column considering ALL lanes passing through each row
-  const rowMaxColumns = useMemo(() => {
-    const result: Record<string, number> = {};
-    // Initialize with each commit's own column
-    for (const commit of visibleCommits) {
-      const lane = graphLayout[commit.hash];
-      result[commit.hash] = lane?.column ?? 0;
-    }
-
-    // Build row index map
-    const rowIndex: Record<string, number> = {};
-    for (let i = 0; i < visibleCommits.length; i++) {
-      rowIndex[visibleCommits[i].hash] = i;
-    }
-
-    // For each commit's lines, mark all rows between source and target
-    for (const commit of visibleCommits) {
-      const lane = graphLayout[commit.hash];
-      if (!lane) continue;
-      const fromRow = rowIndex[commit.hash];
-      if (fromRow == null) continue;
-
-      for (const line of lane.lines) {
-        const toRow = rowIndex[line.toCommit];
-        const maxCol = Math.max(lane.column, line.toColumn, line.fromColumn);
-
-        if (toRow == null) {
-          // Stub line: mark the source row itself (already done in init)
-          // No additional rows to mark since stub only extends slightly
-          continue;
-        }
-
-        const startRow = Math.min(fromRow, toRow);
-        const endRow = Math.max(fromRow, toRow);
-
-        // Mark all rows this line passes through
-        for (let r = startRow; r <= endRow; r++) {
-          const hash = visibleCommits[r]?.hash;
-          if (hash && (result[hash] ?? 0) < maxCol) {
-            result[hash] = maxCol;
-          }
-        }
-      }
-    }
-
-    // Second pass: ensure each row's maxColumn is at least as large as
-    // any lane that is still "active" (passing through) at that row.
-    // We do this by propagating: if row N has a commit in column C whose
-    // parent is beyond visible range, and there's no line to mark below,
-    // the next row should still account for that lane passing through.
-    // Simple approach: scan top-to-bottom, track active columns.
-    const activeColumns = new Set<number>();
-    for (let i = 0; i < visibleCommits.length; i++) {
-      const hash = visibleCommits[i].hash;
-      const lane = graphLayout[hash];
-      if (!lane) continue;
-
-      // This commit occupies its column
-      activeColumns.add(lane.column);
-
-      // If any of its lines connect to a visible target, that lane
-      // ends (for the purpose of passing through) at the target row.
-      // Lines going to non-visible targets keep the lane "active" indefinitely
-      // within our loaded range — but we already handle that via the stub.
-      // The key fix: ensure this row accounts for all active columns.
-      const maxActive = activeColumns.size > 0 ? Math.max(...activeColumns) : 0;
-      if ((result[hash] ?? 0) < maxActive) {
-        result[hash] = maxActive;
-      }
-
-      // Remove columns whose lines terminate at this row
-      // (this commit is the target of a line from above)
-      // We detect this: if this commit's hash appears as toCommit
-      // for a lane in the row above it, and the column differs, then
-      // the fork/merge lane ends here.
-      // Simplified: just remove this commit's column if it has no
-      // lines going further down (i.e., no parents in visible range and
-      // no stub needed because it's a root)
-      if (lane.lines.length === 0) {
-        activeColumns.delete(lane.column);
-      }
-    }
-
-    return result;
-  }, [visibleCommits, graphLayout]);
 
   const virtualizer = useVirtualizer({
     count: visibleCommits.length,
@@ -347,12 +229,16 @@ export function CommitList({
     virtualizer,
   ]);
 
+  // Start at the left edge – a restored/anchored scroll offset would hide the
+  // message column behind the pinned graph gutter.
+  useEffect(() => {
+    const element = parentRef.current;
+    if (element) element.scrollLeft = 0;
+  }, []);
+
   const handleScroll = useCallback(() => {
     const el = parentRef.current;
     if (!el) return;
-    if (headerRef.current) {
-      headerRef.current.scrollLeft = el.scrollLeft;
-    }
     onScroll?.(el.scrollTop);
     if (
       !loading &&
@@ -370,54 +256,6 @@ export function CommitList({
     return () => el.removeEventListener("scroll", handleScroll);
   }, [handleScroll]);
 
-  useEffect(() => {
-    const el = parentRef.current;
-    if (!el) return;
-    // Report header height = offset of scroll area from container top
-    if (onHeaderHeight && el.parentElement) {
-      onHeaderHeight(el.offsetTop);
-    }
-  }, [onHeaderHeight]);
-
-  // Resize handlers using startX approach for stable dragging
-  const [resizing, setResizing] = useState<string | null>(null);
-
-  const startResize = useCallback(
-    (column: "author" | "date" | "hash", e: React.MouseEvent) => {
-      e.preventDefault();
-      e.stopPropagation();
-      const startX = e.clientX;
-      const startWidth = columnWidthsRef.current[column];
-      userResizedRef.current[column] = true;
-      setResizing(column);
-
-      // Prevent text selection during drag
-      document.body.style.cursor = "col-resize";
-      document.body.style.userSelect = "none";
-
-      const onMouseMove = (ev: MouseEvent) => {
-        const diff = startX - ev.clientX;
-        const newWidth = Math.max(
-          column === "author" ? 40 : column === "date" ? 60 : 50,
-          startWidth + diff,
-        );
-        setColumnWidths((prev) => ({ ...prev, [column]: newWidth }));
-      };
-
-      const onMouseUp = () => {
-        setResizing(null);
-        document.body.style.cursor = "";
-        document.body.style.userSelect = "";
-        document.removeEventListener("mousemove", onMouseMove);
-        document.removeEventListener("mouseup", onMouseUp);
-      };
-
-      document.addEventListener("mousemove", onMouseMove);
-      document.addEventListener("mouseup", onMouseUp);
-    },
-    [],
-  );
-
   return (
     <div
       ref={containerRef}
@@ -429,138 +267,6 @@ export function CommitList({
         minWidth: 0,
       }}
     >
-      {/* Column header with resize handles */}
-      <div
-        ref={headerRef}
-        onContextMenu={(e) => {
-          e.preventDefault();
-          setHeaderMenu({ x: e.clientX, y: e.clientY });
-        }}
-        style={{
-          height: 24,
-          flexShrink: 0,
-          position: "relative",
-          zIndex: 3,
-          background: "var(--app-bg, #1e1e1e)",
-          borderBottom: "1px solid var(--border, #333)",
-          overflow: "hidden",
-        }}
-      >
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            height: 24,
-            width: "100%",
-            minWidth: rowWidth,
-            paddingLeft: graphWidth + NODE_TEXT_GAP,
-            paddingRight: 8,
-            boxSizing: "border-box",
-            fontSize: "11px",
-            userSelect: "none",
-          }}
-        >
-          <span
-            title={t("Message")}
-            style={{
-              ...HEADER_TEXT_STYLE,
-              flex: 1,
-              minWidth: 0,
-              paddingRight: 4,
-              opacity: 0.6,
-            }}
-          >
-            {t("Message")}
-          </span>
-          {visibleColumns.author && (
-            <>
-              <ColumnResizeHandle
-                active={resizing === "author"}
-                onMouseDown={(e) => startResize("author", e)}
-              />
-              <span
-                title={t("Author")}
-                style={{
-                  ...HEADER_TEXT_STYLE,
-                  flexShrink: 0,
-                  width: columnWidths.author,
-                  paddingLeft: 8,
-                  boxSizing: "border-box",
-                  position: "sticky",
-                  right: stickyRight.author + verticalScrollbarWidth,
-                  zIndex: 2,
-                  background: "var(--app-bg, #1e1e1e)",
-                }}
-              >
-                <span style={{ opacity: 0.6 }}>{t("Author")}</span>
-              </span>
-            </>
-          )}
-          {visibleColumns.date && (
-            <>
-              <ColumnResizeHandle
-                active={resizing === "date"}
-                onMouseDown={(e) => startResize("date", e)}
-              />
-              <span
-                title={t("Date")}
-                style={{
-                  ...HEADER_TEXT_STYLE,
-                  flexShrink: 0,
-                  width: columnWidths.date,
-                  textAlign: "right",
-                  paddingLeft: 8,
-                  boxSizing: "border-box",
-                  position: "sticky",
-                  right: stickyRight.date + verticalScrollbarWidth,
-                  zIndex: 2,
-                  background: "var(--app-bg, #1e1e1e)",
-                }}
-              >
-                <span style={{ opacity: 0.6 }}>{t("Date")}</span>
-              </span>
-            </>
-          )}
-          {visibleColumns.hash && (
-            <>
-              <ColumnResizeHandle
-                active={resizing === "hash"}
-                onMouseDown={(e) => startResize("hash", e)}
-              />
-              <span
-                title={t("Hash")}
-                style={{
-                  ...HEADER_TEXT_STYLE,
-                  flexShrink: 0,
-                  width: columnWidths.hash,
-                  paddingLeft: 8,
-                  boxSizing: "border-box",
-                  position: "sticky",
-                  right: stickyRight.hash + verticalScrollbarWidth,
-                  zIndex: 2,
-                  background: "var(--app-bg, #1e1e1e)",
-                }}
-              >
-                <span style={{ opacity: 0.6 }}>{t("Hash")}</span>
-              </span>
-            </>
-          )}
-        </div>
-      </div>
-
-      {/* Column header context menu */}
-      {headerMenu && (
-        <HeaderColumnMenu
-          x={headerMenu.x}
-          y={headerMenu.y}
-          visibleColumns={visibleColumns}
-          onToggle={(col) =>
-            usePanelStore.getState().toggleColumnVisibility(col)
-          }
-          onClose={() => setHeaderMenu(null)}
-        />
-      )}
-
       {/* Scrollable commit list */}
       <div
         ref={parentRef}
@@ -569,6 +275,7 @@ export function CommitList({
           minHeight: 0,
           overflow: "auto",
           position: "relative",
+          overflowAnchor: "none",
         }}
       >
         <div
@@ -597,7 +304,7 @@ export function CommitList({
                 <CommitRow
                   commit={commit}
                   lane={lane}
-                  rowMaxColumn={rowMaxColumns[commit.hash] ?? 0}
+                  graphWidth={graphWidth}
                   columnWidths={columnWidths}
                   visibleColumns={visibleColumns}
                   onCommitClick={handleCommitClick}
@@ -655,122 +362,6 @@ export function CommitList({
             document.body,
           )}
       </div>
-    </div>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// ColumnResizeHandle
-// ---------------------------------------------------------------------------
-
-function ColumnResizeHandle({
-  active,
-  onMouseDown,
-}: {
-  active: boolean;
-  onMouseDown: (e: React.MouseEvent) => void;
-}) {
-  const [hovered, setHovered] = useState(false);
-  const highlight = active || hovered;
-
-  return (
-    <div
-      onMouseDown={onMouseDown}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      style={{
-        width: 9,
-        cursor: "col-resize",
-        height: "100%",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        flexShrink: 0,
-        padding: "0 3px",
-      }}
-    >
-      <div
-        style={{
-          width: highlight ? 2 : 1,
-          height: "70%",
-          background: highlight
-            ? "var(--vscode-focusBorder, #007fd4)"
-            : "var(--border, #444)",
-          borderRadius: 1,
-          transition: "width 0.1s, background 0.1s",
-        }}
-      />
-    </div>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// HeaderColumnMenu – right-click context menu for toggling column visibility
-// ---------------------------------------------------------------------------
-
-function HeaderColumnMenu({
-  x,
-  y,
-  visibleColumns,
-  onToggle,
-  onClose,
-}: {
-  x: number;
-  y: number;
-  visibleColumns: VisibleColumns;
-  onToggle: (col: keyof VisibleColumns) => void;
-  onClose: () => void;
-}) {
-  const menuRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const handleClick = (e: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        onClose();
-      }
-    };
-    const handleKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    document.addEventListener("mousedown", handleClick, true);
-    document.addEventListener("keydown", handleKey);
-    return () => {
-      document.removeEventListener("mousedown", handleClick, true);
-      document.removeEventListener("keydown", handleKey);
-    };
-  }, [onClose]);
-
-  const columns: { key: keyof VisibleColumns; label: string }[] = [
-    { key: "author", label: t("Author") },
-    { key: "date", label: t("Date") },
-    { key: "hash", label: t("Hash") },
-  ];
-
-  return (
-    <div
-      ref={menuRef}
-      className="commit-context-menu"
-      style={{
-        position: "fixed",
-        left: x,
-        top: y,
-        zIndex: 10000,
-      }}
-    >
-      <div className="commit-context-menu-header">{t("Columns")}</div>
-      {columns.map((col) => (
-        <button
-          key={col.key}
-          type="button"
-          className="commit-context-menu-item"
-          onClick={() => onToggle(col.key)}
-        >
-          <span style={{ width: 16, display: "inline-block" }}>
-            {visibleColumns[col.key] ? "✓" : ""}
-          </span>
-          <span>{col.label}</span>
-        </button>
-      ))}
     </div>
   );
 }
