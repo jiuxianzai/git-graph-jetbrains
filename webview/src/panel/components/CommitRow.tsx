@@ -150,6 +150,7 @@ export function CommitRow({
   lane,
   graphWidth,
   columnWidths,
+  compactRefs = false,
   visibleColumns,
   onCommitClick,
   onContextMenu,
@@ -158,6 +159,7 @@ export function CommitRow({
   lane: LaneInfo | undefined;
   graphWidth: number;
   columnWidths: ColumnWidths;
+  compactRefs?: boolean;
   visibleColumns?: VisibleColumns;
   onCommitClick: (event: React.MouseEvent, hash: string) => void;
   onContextMenu?: (event: React.MouseEvent, commit: Commit) => void;
@@ -168,7 +170,11 @@ export function CommitRow({
 
   const isSelected = selectedCommitHashes.includes(commit.hash);
   const col = lane?.column ?? 0;
-  const refItems = buildRefDisplayItems(commit.refs);
+  const refItems = buildRefDisplayItems(commit.refs).filter(
+    (item) => item.type !== "HEAD",
+  );
+  const refLabel = refItems.map((item) => item.label).join(" & ");
+  const primaryRefType = refItems[0]?.type ?? "branch";
 
   return (
     <div
@@ -238,65 +244,62 @@ export function CommitRow({
             style={{
               display: "inline-flex",
               alignItems: "center",
-              gap: 4,
               flexShrink: 1,
               minWidth: 0,
-              maxWidth: "50%",
+              maxWidth: compactRefs ? 24 : "50%",
               overflow: "hidden",
               marginLeft: 8,
               paddingLeft: 8,
             }}
           >
-            {/* Overlapping outline tag icons */}
-            <span
-              style={{
-                display: "inline-flex",
-                position: "relative",
-                width: 16 + Math.max(0, (refItems.length - 1) * 5),
-                height: 16,
-              }}
-            >
-              {refItems.map((item, idx) => {
-                const color =
-                  REF_ICON_COLORS[item.type] ?? REF_ICON_COLORS.branch;
-                return (
-                  <svg
-                    key={item.key}
-                    width="16"
-                    height="16"
-                    viewBox="0 0 16 16"
-                    fill="none"
-                    style={{ position: "absolute", left: idx * 5, top: 0 }}
-                  >
-                    <path
-                      d="M2.5 3.5C2.5 2.95 2.95 2.5 3.5 2.5H7.09c.27 0 .52.1.71.3l5.41 5.41c.39.39.39 1.02 0 1.41l-3.59 3.59c-.39.39-1.02.39-1.41 0L2.79 7.8a1 1 0 01-.29-.71V3.5z"
-                      fill="var(--app-bg, #fff)"
-                      stroke={color}
-                      strokeWidth="1.2"
-                    />
-                    <circle cx="5" cy="5" r="0.9" fill={color} />
-                  </svg>
-                );
-              })}
-            </span>
-            {/* Text labels (skip HEAD text) */}
-            <Tooltip
-              text={refItems
-                .filter((item) => item.type !== "HEAD")
-                .map((item) => item.label)
-                .join("  ")}
-            >
+            <Tooltip text={refLabel}>
               <span
                 style={{
-                  fontSize: "0.8em",
-                  whiteSpace: "nowrap",
-                  opacity: 0.85,
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 4,
+                  minWidth: 0,
+                  overflow: "hidden",
                 }}
               >
-                {refItems
-                  .filter((item) => item.type !== "HEAD")
-                  .map((item) => item.label)
-                  .join("  ")}
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 16 16"
+                  fill="none"
+                  style={{ flexShrink: 0 }}
+                >
+                  <path
+                    d="M2.5 3.5C2.5 2.95 2.95 2.5 3.5 2.5H7.09c.27 0 .52.1.71.3l5.41 5.41c.39.39.39 1.02 0 1.41l-3.59 3.59c-.39.39-1.02.39-1.41 0L2.79 7.8a1 1 0 01-.29-.71V3.5z"
+                    fill="var(--app-bg, #fff)"
+                    stroke={
+                      REF_ICON_COLORS[primaryRefType] ?? REF_ICON_COLORS.branch
+                    }
+                    strokeWidth="1.2"
+                  />
+                  <circle
+                    cx="5"
+                    cy="5"
+                    r="0.9"
+                    fill={
+                      REF_ICON_COLORS[primaryRefType] ?? REF_ICON_COLORS.branch
+                    }
+                  />
+                </svg>
+                {!compactRefs && (
+                  <span
+                    style={{
+                      fontSize: "0.8em",
+                      whiteSpace: "nowrap",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      opacity: 0.85,
+                      minWidth: 0,
+                    }}
+                  >
+                    {refLabel}
+                  </span>
+                )}
               </span>
             </Tooltip>
           </span>

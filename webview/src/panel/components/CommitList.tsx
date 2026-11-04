@@ -35,6 +35,7 @@ export function CommitList({
 
   const parentRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const [listWidth, setListWidth] = useState(0);
   const [columnWidths, setColumnWidths] = useState<ColumnWidths>(
     DEFAULT_COLUMN_WIDTHS,
   );
@@ -68,6 +69,17 @@ export function CommitList({
     ...Object.values(graphLayout).map((l) => l.column),
   );
   const graphWidth = (maxColumn + 1) * COLUMN_WIDTH + GRAPH_PADDING * 2;
+
+  useEffect(() => {
+    const element = containerRef.current;
+    if (!element) return;
+    const observer = new ResizeObserver((entries) => {
+      setListWidth(entries[0]?.contentRect.width ?? element.clientWidth);
+    });
+    observer.observe(element);
+    setListWidth(element.clientWidth);
+    return () => observer.disconnect();
+  }, []);
 
   // Fit the author/date columns to their widest content so names and dates are
   // never wrapped or ellipsized. Manual resizing wins once the user drags.
@@ -254,6 +266,7 @@ export function CommitList({
                   lane={lane}
                   graphWidth={graphWidth}
                   columnWidths={columnWidths}
+                  compactRefs={listWidth > 0 && listWidth < 560}
                   visibleColumns={visibleColumns}
                   onCommitClick={handleCommitClick}
                   onContextMenu={handleContextMenu}

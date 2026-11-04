@@ -1,6 +1,8 @@
 .tooltip-wrapper {
   position: relative;
   display: inline-flex;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .tooltip-popup {

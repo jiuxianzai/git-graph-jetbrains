@@ -1,5 +1,15 @@
 # Changelog / 更新日志
 
+## [0.4.30] - 2026-11-04
+
+### Changed / 调整
+- **Icon-only branch labels on narrow panels** — below 560 px the ref label collapses to its tag icon (full name in the tooltip), giving the commit message the space it needs; wider panels keep the text label / 面板宽度小于 560px 时分支标签只显示图标（悬停看完整名称），把空间留给提交信息；更宽时仍显示文字标签
+
+## [0.4.29] - 2026-11-04
+
+### Fixed / 修复
+- **Branch labels no longer stack on top of each other** — a commit now shows a single tag icon and one combined label (`origin & release`) with ellipsis/tooltip instead of several overlapping icons and labels / 提交行只显示一个标签图标和一条合并后的分支名（如 `origin & release`），超长省略并提供 tooltip，不再多个图标互相叠压
+
 ## [0.4.28] - 2026-11-04
 
 ### Fixed / 修复
