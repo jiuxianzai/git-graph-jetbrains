@@ -2,6 +2,7 @@ import { Tooltip } from "../../shared/components/Tooltip";
 import { usePreventSelect } from "../../shared/hooks/usePreventSelect";
 import { usePanelStore } from "../../shared/store/panel-store";
 import type { Commit, LaneInfo, RefInfo } from "../../shared/types/git";
+import { formatCommitDate, formatFullDateTime } from "../utils/date";
 
 export const ROW_HEIGHT = 28;
 const COLUMN_WIDTH = 10;
@@ -15,17 +16,6 @@ const REF_ICON_COLORS: Record<string, string> = {
   tag: "#e5c07b",
   HEAD: "#c75450",
 };
-
-function formatDateTime(dateStr: string): string {
-  const date = new Date(dateStr);
-  if (Number.isNaN(date.getTime())) return dateStr;
-  const yyyy = date.getFullYear();
-  const mm = String(date.getMonth() + 1).padStart(2, "0");
-  const dd = String(date.getDate()).padStart(2, "0");
-  const hh = String(date.getHours()).padStart(2, "0");
-  const min = String(date.getMinutes()).padStart(2, "0");
-  return `${yyyy}/${mm}/${dd} ${hh}:${min}`;
-}
 
 function buildRefDisplayItems(refs: RefInfo[]): Array<{
   key: string;
@@ -326,15 +316,17 @@ export function CommitRow({
       {/* Date column */}
       {visibleColumns?.date !== false && (
         <span
+          title={formatFullDateTime(commit.authorDate)}
           style={{
             flexShrink: 0,
             width: columnWidths.date,
             textAlign: "right",
             opacity: 0.5,
             paddingLeft: 8,
+            whiteSpace: "nowrap",
           }}
         >
-          {formatDateTime(commit.authorDate)}
+          {formatCommitDate(commit.authorDate)}
         </span>
       )}
 

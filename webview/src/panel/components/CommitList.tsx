@@ -6,6 +6,7 @@ import { useModifierClickSelection } from "../../shared/hooks/useModifierClickSe
 import { t } from "../../shared/i18n";
 import { usePanelStore } from "../../shared/store/panel-store";
 import type { Commit } from "../../shared/types/git";
+import { formatCommitDate } from "../utils/date";
 import { CommitContextMenu } from "./CommitContextMenu";
 import {
   type ColumnWidths,
@@ -38,6 +39,7 @@ export function CommitList({
   onHeaderHeight?: (height: number) => void;
 }) {
   const visibleCommits = usePanelStore((s) => s.visibleCommits);
+  const commits = usePanelStore((s) => s.commits);
   const graphLayout = usePanelStore((s) => s.graphLayout);
   const hasMore = usePanelStore((s) => s.hasMore);
   const loadMore = usePanelStore((s) => s.loadMore);
@@ -57,6 +59,8 @@ export function CommitList({
   } | null>(null);
   const columnWidthsRef = useRef(columnWidths);
   columnWidthsRef.current = columnWidths;
+  // Once the user drags a divider we stop auto-fitting that column.
+  const userResizedRef = useRef({ author: false, date: false, hash: false });
 
   const [contextMenu, setContextMenu] = useState<{
     x: number;
@@ -117,6 +121,46 @@ export function CommitList({
     }
     return next;
   }, [visibleColumns, listWidth, graphWidth, columnWidths]);
+
+  // Fit the author/date columns to their widest content so names and dates are
+  // never wrapped or ellipsized. Manual resizing wins once the user drags.
+  const contentWidths = useMemo(() => {
+    if (commits.length === 0) return { author: 88, date: 112 };
+    const canvas = document.createElement("canvas");
+    const context = canvas.getContext("2d");
+    if (context) {
+      const style = getComputedStyle(document.body);
+      context.font = `${style.fontSize} ${style.fontFamily}`;
+    }
+    let author = 0;
+    let date = 0;
+    for (const commit of commits) {
+      const authorWidth = context
+        ? context.measureText(commit.authorName).width
+        : commit.authorName.length * 7;
+      const dateWidth = context
+        ? context.measureText(formatCommitDate(commit.authorDate)).width
+        : formatCommitDate(commit.authorDate).length * 7;
+      author = Math.max(author, authorWidth);
+      date = Math.max(date, dateWidth);
+    }
+    return {
+      author: Math.min(240, Math.max(72, Math.ceil(author) + 16)),
+      date: Math.min(180, Math.max(80, Math.ceil(date) + 16)),
+    };
+  }, [commits]);
+
+  useEffect(() => {
+    setColumnWidths((previous) => {
+      const next = { ...previous };
+      if (!userResizedRef.current.author) next.author = contentWidths.author;
+      if (!userResizedRef.current.date) next.date = contentWidths.date;
+      if (next.author === previous.author && next.date === previous.date) {
+        return previous;
+      }
+      return next;
+    });
+  }, [contentWidths]);
 
   // Compute per-row max column considering ALL lanes passing through each row
   const rowMaxColumns = useMemo(() => {
@@ -312,6 +356,7 @@ export function CommitList({
       e.stopPropagation();
       const startX = e.clientX;
       const startWidth = columnWidthsRef.current[column];
+      userResizedRef.current[column] = true;
       setResizing(column);
 
       // Prevent text selection during drag

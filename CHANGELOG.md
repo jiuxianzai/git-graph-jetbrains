@@ -1,5 +1,11 @@
 # Changelog / 更新日志
 
+## [0.4.24] - 2026-11-04
+
+### Changed / 调整
+- **Relative dates in Git Log** — commits from today show `今天 16:56`, yesterday shows `昨天 09:26`, older commits keep `YYYY/MM/DD HH:mm`; hover the date for the full timestamp / Git 日志日期：今天提交显示「今天 16:56」，昨天显示「昨天 09:26」，更早的才显示完整 `YYYY/MM/DD HH:mm`，鼠标悬停可看完整时间
+- **Author/date columns fit their content** — widths are measured from the actual names and dates, so names and dates render on one line in full instead of wrapping or showing `…`; manual resizing still wins / 作者和日期列按实际内容自动定宽，名字和日期单行完整显示、不再换行或省略；手动拖动过的列以手动宽度为准
+
 ## [0.4.23] - 2026-11-04
 
 ### Changed / 调整

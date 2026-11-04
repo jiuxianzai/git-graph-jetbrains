@@ -53,4 +53,6 @@ export const zhCommon: Record<string, string> = {
   "{count}d ago": "{count} 天前",
   Today: "今天",
   Yesterday: "昨天",
+  "Today {time}": "今天 {time}",
+  "Yesterday {time}": "昨天 {time}",
 };
