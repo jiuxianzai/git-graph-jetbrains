@@ -339,3 +339,42 @@ button.branch-sidebar-btn:disabled {
 .branch-sidebar-spacer {
   flex: 1;
 }
+
+/* Push confirmation dialog buttons: primary action must stand out, cancel must not. */
+.push-dialog-btn {
+  border-radius: 4px;
+  padding: 4px 14px;
+  font-size: 12px;
+  height: 28px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  font-family: var(--font-family);
+}
+
+.push-dialog-primary {
+  background: #3574f0;
+  color: #ffffff;
+  border-color: #3574f0;
+}
+.push-dialog-primary:hover {
+  background: #2f65ca;
+  border-color: #2f65ca;
+}
+
+.push-dialog-secondary {
+  background: transparent;
+  color: var(--app-fg);
+  border-color: var(--border);
+}
+.push-dialog-secondary:hover {
+  background: var(--hover-bg);
+}
+
+.push-dialog-danger {
+  background: transparent;
+  color: var(--vscode-errorForeground, #f48771);
+  border-color: var(--vscode-errorForeground, #f48771);
+}
+.push-dialog-danger:hover {
+  background: rgba(244, 135, 113, 0.12);
+}

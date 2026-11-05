@@ -91,51 +91,24 @@ export function PushDialog({ branchName, onClose, onPush }: PushDialogProps) {
         >
           <button
             type="button"
+            className="push-dialog-btn push-dialog-danger"
             onClick={() => onPush(true)}
-            style={{
-              background: "transparent",
-              color: "var(--vscode-errorForeground, #f48771)",
-              border: "1px solid var(--vscode-errorForeground, #f48771)",
-              borderRadius: 4,
-              padding: "4px 14px",
-              fontSize: 12,
-              height: 28,
-              cursor: "pointer",
-              fontWeight: 500,
-            }}
+            style={{ fontWeight: 500 }}
           >
             {t("Force Push")}
           </button>
           <div style={{ flex: 1 }} />
           <button
             type="button"
+            className="push-dialog-btn push-dialog-secondary"
             onClick={onClose}
-            style={{
-              background: "var(--vscode-button-secondaryBackground, #3a3d41)",
-              color: "var(--vscode-button-secondaryForeground, var(--app-fg))",
-              border: "none",
-              borderRadius: 4,
-              padding: "4px 14px",
-              fontSize: 12,
-              height: 28,
-              cursor: "pointer",
-            }}
           >
             {t("Cancel")}
           </button>
           <button
             type="button"
+            className="push-dialog-btn push-dialog-primary"
             onClick={() => onPush(false)}
-            style={{
-              background: "var(--button-bg)",
-              color: "var(--button-fg)",
-              border: "none",
-              borderRadius: 4,
-              padding: "4px 14px",
-              fontSize: 12,
-              height: 28,
-              cursor: "pointer",
-            }}
           >
             {t("Push")}
           </button>

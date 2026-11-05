@@ -8,6 +8,9 @@
 ### Added / 新增
 - Unit tests for the Shiki highlighter (loaded languages/themes + tokenization) / 新增 Shiki 高亮器单元测试（加载的语言/主题 + 分词）
 
+### Fixed / 修复
+- **Push dialog button hierarchy** — “Push” is now the highlighted primary action, “Cancel” is neutral, and “Force Push” keeps the red danger outline / 推送确认弹窗：`推送` 为高亮主按钮，`取消` 为中性按钮，`强制推送` 保持红色危险样式
+
 ### Docs / 文档
 - README now includes the Marketplace badge and updated install instructions / README 增加 Marketplace 徽章并更新安装说明
 
