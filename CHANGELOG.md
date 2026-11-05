@@ -1,5 +1,10 @@
 # Changelog / 更新日志
 
+## [1.0.2] - 2026-11-05
+
+### Fixed / 修复
+- **Push dialog button hierarchy** — “Push” is the highlighted primary action, “Cancel” is neutral and “Force Push” keeps the red danger outline; fixes 1.0.1 where the theme made Cancel look primary / 推送确认弹窗按钮层级：`推送` 为高亮主按钮，`取消` 为中性按钮，`强制推送` 保持红色危险样式；修复 1.0.1 中取消按钮看起来像主操作的问题
+
 ## [1.0.1] - 2026-11-05
 
 ### Performance / 性能
