@@ -8,7 +8,7 @@
   "icon": "images/icon.png",
   "repository": {
     "type": "git",
-    "url": "https://github.com/jiuxianzai/jetbrains-git-graph"
+    "url": "https://github.com/jiuxianzai/git-graph-jetbrains"
   },
   "engines": {
     "vscode": "^1.85.0"
@@ -275,7 +275,7 @@
     "node-diff3": "^3.2.0"
   },
   "bugs": {
-    "url": "https://github.com/jiuxianzai/jetbrains-git-graph/issues"
+    "url": "https://github.com/jiuxianzai/git-graph-jetbrains/issues"
   },
-  "homepage": "https://github.com/jiuxianzai/jetbrains-git-graph#readme"
+  "homepage": "https://github.com/jiuxianzai/git-graph-jetbrains#readme"
 }

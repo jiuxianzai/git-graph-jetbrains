@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="https://raw.githubusercontent.com/jiuxianzai/jetbrains-git-graph/main/images/icon.png" width="96" />
+<img src="https://raw.githubusercontent.com/jiuxianzai/git-graph-jetbrains/main/images/icon.png" width="96" />
 
 # Git Graph (JetBrains)
 
@@ -22,7 +22,7 @@ This repository is a **community fork**, not the original project.
 - **Forked from:** [`aotemj/jetbrains-git-graph`](https://github.com/aotemj/jetbrains-git-graph)  
   (the upstream project this fork is based on, at version `0.4.17`)
 - **Which itself is a fork of:** [`zhyc9de/jet-git`](https://github.com/zhyc9de/jet-git)
-- **This fork:** [`jiuxianzai/jetbrains-git-graph`](https://github.com/jiuxianzai/jetbrains-git-graph)
+- **This fork:** [`jiuxianzai/git-graph-jetbrains`](https://github.com/jiuxianzai/git-graph-jetbrains)
 - **Marketplace ID:** `jiuxianzai.git-graph-jetbrains`
 
 The original code and UI are the work of the upstream authors. This fork keeps
@@ -67,15 +67,15 @@ context menus — comes from the upstream project.
 
 ### Git Log — Chinese UI, prefix folders, pinned current branch
 
-![Git Log](https://raw.githubusercontent.com/jiuxianzai/jetbrains-git-graph/main/images/screenshots/git-log.png)
+![Git Log](https://raw.githubusercontent.com/jiuxianzai/git-graph-jetbrains/main/images/screenshots/git-log.png)
 
 ### Conventional Commit type picker
 
-![Commit types](https://raw.githubusercontent.com/jiuxianzai/jetbrains-git-graph/main/images/screenshots/commit-types.png)
+![Commit types](https://raw.githubusercontent.com/jiuxianzai/git-graph-jetbrains/main/images/screenshots/commit-types.png)
 
 ### New branch with prefix picker
 
-![Branch prefix](https://raw.githubusercontent.com/jiuxianzai/jetbrains-git-graph/main/images/screenshots/branch-prefix.png)
+![Branch prefix](https://raw.githubusercontent.com/jiuxianzai/git-graph-jetbrains/main/images/screenshots/branch-prefix.png)
 
 ---
 
@@ -145,6 +145,6 @@ pnpm run vsce:package # produce a .vsix
 
 - Original project: [`zhyc9de/jet-git`](https://github.com/zhyc9de/jet-git)
 - Upstream fork this work is based on: [`aotemj/jetbrains-git-graph`](https://github.com/aotemj/jetbrains-git-graph)
-- This fork: [`jiuxianzai/jetbrains-git-graph`](https://github.com/jiuxianzai/jetbrains-git-graph)
+- This fork: [`jiuxianzai/git-graph-jetbrains`](https://github.com/jiuxianzai/git-graph-jetbrains)
 
 MIT License. Original copyright notices are preserved in [`LICENSE`](./LICENSE).

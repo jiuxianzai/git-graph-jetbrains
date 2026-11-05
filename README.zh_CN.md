@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="https://raw.githubusercontent.com/jiuxianzai/jetbrains-git-graph/main/images/icon.png" width="96" />
+<img src="https://raw.githubusercontent.com/jiuxianzai/git-graph-jetbrains/main/images/icon.png" width="96" />
 
 # Git Graph (JetBrains)
 
@@ -22,7 +22,7 @@
 - **Fork 自：** [`aotemj/jetbrains-git-graph`](https://github.com/aotemj/jetbrains-git-graph)  
   （本分支基于其 `0.4.17` 版本）
 - **上游最初来源：** [`zhyc9de/jet-git`](https://github.com/zhyc9de/jet-git)
-- **本分支仓库：** [`jiuxianzai/jetbrains-git-graph`](https://github.com/jiuxianzai/jetbrains-git-graph)
+- **本分支仓库：** [`jiuxianzai/git-graph-jetbrains`](https://github.com/jiuxianzai/git-graph-jetbrains)
 - **插件市场 ID：** `jiuxianzai.git-graph-jetbrains`
 
 原始代码与界面的版权归上游作者所有。本分支保留 MIT 协议与原始版权声明
@@ -64,15 +64,15 @@ Cherry-Pick/Rebase/Merge、文件历史与右键菜单）均来自上游项目�
 
 ### Git 日志：中文界面、前缀目录、当前分支置顶
 
-![Git 日志](https://raw.githubusercontent.com/jiuxianzai/jetbrains-git-graph/main/images/screenshots/git-log.png)
+![Git 日志](https://raw.githubusercontent.com/jiuxianzai/git-graph-jetbrains/main/images/screenshots/git-log.png)
 
 ### Conventional Commit 类型选择
 
-![提交类型](https://raw.githubusercontent.com/jiuxianzai/jetbrains-git-graph/main/images/screenshots/commit-types.png)
+![提交类型](https://raw.githubusercontent.com/jiuxianzai/git-graph-jetbrains/main/images/screenshots/commit-types.png)
 
 ### 新建分支的前缀选择
 
-![分支前缀](https://raw.githubusercontent.com/jiuxianzai/jetbrains-git-graph/main/images/screenshots/branch-prefix.png)
+![分支前缀](https://raw.githubusercontent.com/jiuxianzai/git-graph-jetbrains/main/images/screenshots/branch-prefix.png)
 
 ---
 
@@ -141,6 +141,6 @@ pnpm run vsce:package # 生成 .vsix
 
 - 最初项目：[`zhyc9de/jet-git`](https://github.com/zhyc9de/jet-git)
 - 本分支所基于的上游：[`aotemj/jetbrains-git-graph`](https://github.com/aotemj/jetbrains-git-graph)
-- 本分支：[`jiuxianzai/jetbrains-git-graph`](https://github.com/jiuxianzai/jetbrains-git-graph)
+- 本分支：[`jiuxianzai/git-graph-jetbrains`](https://github.com/jiuxianzai/git-graph-jetbrains)
 
 MIT 协议，原始版权声明保留在 [`LICENSE`](./LICENSE) 中。
