@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="https://raw.githubusercontent.com/jiuxianzai/git-graph-jetbrains/main/images/icon.png" width="96" />
+<img src="https://raw.githubusercontent.com/jiuxianzai/git-graph-jetbrains/main/images/icon.png?v=2" width="96" />
 
 # Git Graph (JetBrains)
 
@@ -8,6 +8,7 @@
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 [![VS Code](https://img.shields.io/badge/VS%20Code-%5E1.85.0-007ACC.svg)](https://code.visualstudio.com/)
+[![Marketplace](https://img.shields.io/visual-studio-marketplace/v/jiuxianzai.git-graph-jetbrains?label=marketplace)](https://marketplace.visualstudio.com/items?itemName=jiuxianzai.git-graph-jetbrains)
 
 [English](./README.md) · [简体中文](./README.zh_CN.md)
 
@@ -93,7 +94,7 @@ context menus — comes from the upstream project.
 
 ## Installation
 
-**From the Marketplace (after this fork is published):**
+**From the Marketplace:**
 
 ```
 ext install jiuxianzai.git-graph-jetbrains
