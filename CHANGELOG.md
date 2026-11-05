@@ -1,5 +1,16 @@
 # Changelog / 更新日志
 
+## [1.0.1] - 2026-11-05
+
+### Performance / 性能
+- **Webview bundle reduced from 9.6 MB to 1.2 MB** (gzip 1.82 MB → 270 KB) by importing Shiki through `shiki/core` with only the six supported languages and two themes. Measured webview DOMContentLoaded in the demo: ~68 ms / Webview 包从 9.6MB 降到 1.2MB（gzip 1.82MB → 270KB）：Shiki 改为按需引入 6 种语言与 2 套主题，实测 Demo 的 DOMContentLoaded 约 68ms
+
+### Added / 新增
+- Unit tests for the Shiki highlighter (loaded languages/themes + tokenization) / 新增 Shiki 高亮器单元测试（加载的语言/主题 + 分词）
+
+### Docs / 文档
+- README now includes the Marketplace badge and updated install instructions / README 增加 Marketplace 徽章并更新安装说明
+
 ## [1.0.0] - 2026-11-05
 
 First release of the **jiuxianzai.git-graph-jetbrains** fork.

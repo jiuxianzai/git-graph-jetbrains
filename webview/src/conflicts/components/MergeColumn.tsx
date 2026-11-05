@@ -1,6 +1,7 @@
 import type React from "react";
 import { useMemo } from "react";
-import type { BundledLanguage, Highlighter, SpecialLanguage } from "shiki";
+import type { BundledLanguage, SpecialLanguage } from "shiki";
+import type { HighlighterCore } from "shiki/core";
 import { useShiki } from "../../shared/hooks/useShiki";
 import type { MergeBlock } from "../../shared/models/merge";
 import { calculateInlineDiffs, type InlineDiff } from "../utils/inline-diff";
@@ -67,7 +68,7 @@ interface MergedSpan {
  * Get Shiki syntax tokens for a single line, returned as character-range spans.
  */
 function getShikiSpans(
-  highlighter: Highlighter,
+  highlighter: HighlighterCore,
   line: string,
   language: string,
 ): Array<{ start: number; end: number; color?: string }> {
