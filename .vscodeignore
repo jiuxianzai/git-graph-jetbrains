@@ -26,3 +26,4 @@ demo/**
 images/screenshots/**
 *.vsix
 .idea/**
+scripts/**
