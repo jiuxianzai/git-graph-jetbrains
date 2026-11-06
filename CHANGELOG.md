@@ -1,5 +1,11 @@
 # Changelog / 更新日志
 
+## [1.0.4] - 2026-11-06
+
+### Fixed / 修复
+- **Commit message area keeps its height after switching views** — A hidden webview reports a zero-height viewport, and the area used to clamp its remembered height against that, collapsing to the 150 px minimum and throwing the drag away; hidden/unmeasurable states are now ignored and your dragged height is restored every time the view reopens (default stays ≈ 1/3 of the panel, double-click the handle to reset) / 提交信息文本域的高度不再被「切换视图」重置：Webview 隐藏时视口高度为 0，旧逻辑拿它去夹取记住的高度，结果被压回 150px 最小值、拖动也白拖；现在隐藏/不可测量的时刻直接跳过，视图重新打开时恢复你拖过的高度（默认仍约 1/3，双击拖拽手柄可复位）
+- **Height math extracted and unit-tested** — `message-area-height.ts` with 13 vitest cases covering the hidden-viewport and out-of-range regressions / 高度计算抽成 `message-area-height.ts` 并补 13 条 vitest 用例，覆盖「视口为 0」「历史值超范围」等回归点
+
 ## [1.0.3] - 2026-11-06
 
 ### Fixed / 修复

@@ -10,33 +10,35 @@ import {
   COMMIT_TYPES,
   detectCommitType,
 } from "../utils/commit-prefix";
+import {
+  AREA_HEIGHT_STORAGE_KEY,
+  clampAreaHeight,
+  defaultAreaHeight,
+  initialAreaHeight,
+} from "../utils/message-area-height";
 
-const MIN_AREA_HEIGHT = 150;
-const AREA_HEIGHT_STORAGE_KEY = "jetgit.commitMessageAreaHeight";
-
-function maxAreaHeight(): number {
-  return Math.max(MIN_AREA_HEIGHT, Math.round(window.innerHeight * 0.72));
+/**
+ * Viewport height, or 0 when it cannot be measured. A webview that is hidden
+ * mid-switch (the commit view is hidden or re-created while another view takes
+ * over) reports `innerHeight === 0`, so callers must not clamp against it.
+ */
+function viewportHeight(): number {
+  const height = window.innerHeight;
+  return Number.isFinite(height) && height > 0 ? height : 0;
 }
 
-function defaultAreaHeight(): number {
-  return Math.min(
-    maxAreaHeight(),
-    Math.max(MIN_AREA_HEIGHT, Math.round(window.innerHeight / 3)),
-  );
-}
-
-function clampAreaHeight(height: number): number {
-  return Math.min(maxAreaHeight(), Math.max(MIN_AREA_HEIGHT, height));
-}
-
-function readAreaHeight(): number {
+function readStoredAreaHeight(): number | null {
   try {
     const saved = Number(localStorage.getItem(AREA_HEIGHT_STORAGE_KEY));
-    if (Number.isFinite(saved) && saved > 0) return clampAreaHeight(saved);
+    if (Number.isFinite(saved) && saved > 0) return saved;
   } catch {
     // localStorage unavailable
   }
-  return defaultAreaHeight();
+  return null;
+}
+
+function readInitialAreaHeight(): number {
+  return initialAreaHeight(readStoredAreaHeight(), viewportHeight());
 }
 
 export function CommitMessageArea() {
@@ -50,8 +52,12 @@ export function CommitMessageArea() {
     selectedFiles,
   } = useCommitStore();
 
-  const [areaHeight, setAreaHeight] = useState<number>(readAreaHeight);
+  const [areaHeight, setAreaHeight] = useState<number>(readInitialAreaHeight);
+  // Height actually rendered (may be clamped while the view is short).
   const areaHeightRef = useRef(areaHeight);
+  // Height the user picked; null means "keep following the 1/3 default". The
+  // rendered height must never leak a clamped value back into this one.
+  const userHeightRef = useRef<number | null>(readStoredAreaHeight());
   const [isResizing, setIsResizing] = useState(false);
   const resizeStartRef = useRef<{ y: number; height: number } | null>(null);
   const [showDropdown, setShowDropdown] = useState(false);
@@ -174,7 +180,10 @@ export function CommitMessageArea() {
       const start = resizeStartRef.current;
       if (!start) return;
       // Dragging the handle upward grows the message area.
-      const next = clampAreaHeight(start.height + (start.y - e.clientY));
+      const next = clampAreaHeight(
+        start.height + (start.y - e.clientY),
+        viewportHeight(),
+      );
       areaHeightRef.current = next;
       setAreaHeight(next);
     },
@@ -189,13 +198,16 @@ export function CommitMessageArea() {
       if (e.currentTarget.hasPointerCapture(e.pointerId)) {
         e.currentTarget.releasePointerCapture(e.pointerId);
       }
+      // Remember what the user picked, not what was temporarily clamped.
+      userHeightRef.current = areaHeightRef.current;
       persistAreaHeight(areaHeightRef.current);
     },
     [persistAreaHeight],
   );
 
   const handleResizeReset = useCallback(() => {
-    const height = defaultAreaHeight();
+    userHeightRef.current = null;
+    const height = defaultAreaHeight(viewportHeight());
     areaHeightRef.current = height;
     setAreaHeight(height);
     // Forget the custom height so the default keeps following the view size.
@@ -206,15 +218,35 @@ export function CommitMessageArea() {
     }
   }, []);
 
-  // Keep the area usable when the window/view gets shorter.
+  // Keep the area usable when the window/view gets shorter, and restore the
+  // remembered height once the view is measurable again. Skipping unmeasurable
+  // (hidden) states is what makes the height survive a view switch.
   useEffect(() => {
-    const handleWindowResize = () => {
-      const height = clampAreaHeight(areaHeightRef.current);
+    const handleViewportChange = () => {
+      const viewport = viewportHeight();
+      if (viewport <= 0 || document.visibilityState === "hidden") return;
+      const height = clampAreaHeight(
+        userHeightRef.current ?? defaultAreaHeight(viewport),
+        viewport,
+      );
       areaHeightRef.current = height;
       setAreaHeight(height);
     };
-    window.addEventListener("resize", handleWindowResize);
-    return () => window.removeEventListener("resize", handleWindowResize);
+    handleViewportChange();
+    window.addEventListener("resize", handleViewportChange);
+    document.addEventListener("visibilitychange", handleViewportChange);
+    // A webview that was hidden while being re-created does not always emit a
+    // window resize when it comes back; observing the document covers that.
+    let observer: ResizeObserver | undefined;
+    if (typeof ResizeObserver !== "undefined") {
+      observer = new ResizeObserver(handleViewportChange);
+      observer.observe(document.documentElement);
+    }
+    return () => {
+      window.removeEventListener("resize", handleViewportChange);
+      document.removeEventListener("visibilitychange", handleViewportChange);
+      observer?.disconnect();
+    };
   }, []);
 
   return (
