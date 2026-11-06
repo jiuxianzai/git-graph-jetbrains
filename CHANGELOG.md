@@ -1,5 +1,10 @@
 # Changelog / 更新日志
 
+## [1.0.3] - 2026-11-06
+
+### Fixed / 修复
+- **Panel layout no longer drifts after switching views** — The details pane no longer collapses to its minimum or jumps to its maximum when you switch from JetGit to Explorer and back (or hide/show the details pane); only an actual sash drag updates the remembered layout, and the saved width is re-applied whenever the webview is re-shown / 切换资源管理器再切回 JetGit 后面板布局不再乱跳：详情栏不会再被压到最小或顶到最大，只有真正拖动分隔条才会记住宽度，Webview 重新显示时会把宽度钉回你设定的值
+
 ## [1.0.2] - 2026-11-05
 
 ### Fixed / 修复

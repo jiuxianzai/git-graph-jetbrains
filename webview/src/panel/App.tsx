@@ -1,4 +1,4 @@
-import { Allotment } from "allotment";
+import { Allotment, type AllotmentHandle } from "allotment";
 import { useCallback, useEffect, useRef, useState } from "react";
 import "allotment/dist/style.css";
 import { Tooltip } from "../shared/components/Tooltip";
@@ -48,31 +48,53 @@ function ProgressBar({ visible }: { visible: boolean }) {
 const LAYOUT_LEFT_RATIO = 0.22;
 const LAYOUT_RIGHT_RATIO = 0.24;
 
+const LEFT_MIN = 140;
+const LEFT_MAX = 500;
+const RIGHT_MIN = 140;
+const RIGHT_MAX = 600;
+/** Allotment clamps against the pane minimum, keep the graph usable. */
+const MIDDLE_MIN = 180;
+/** Pane width when the details panel is collapsed. */
+const COLLAPSED_WIDTH = 28;
+
 function clampWidth(value: number, min: number, max: number): number {
+  if (!Number.isFinite(value)) return min;
   return Math.max(min, Math.min(max, Math.round(value)));
 }
 
 function layoutStorageKey(): string {
   const workspace =
     document.getElementById("root")?.dataset.workspace ?? "default";
-  return `jetgit.layout:${workspace}`;
+  // v2: v1 keys were polluted by transient (clamped) sizes written on every
+  // layout pass, so start from a clean slate.
+  return `jetgit.layout.v2:${workspace}`;
 }
 
 function readLayout(): { left?: number; right?: number } | null {
   try {
     const raw = localStorage.getItem(layoutStorageKey());
-    return raw ? (JSON.parse(raw) as { left?: number; right?: number }) : null;
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as { left?: unknown; right?: unknown };
+    const left =
+      typeof parsed.left === "number" && Number.isFinite(parsed.left)
+        ? clampWidth(parsed.left, LEFT_MIN, LEFT_MAX)
+        : undefined;
+    const right =
+      typeof parsed.right === "number" && Number.isFinite(parsed.right)
+        ? clampWidth(parsed.right, RIGHT_MIN, RIGHT_MAX)
+        : undefined;
+    return left === undefined && right === undefined ? null : { left, right };
   } catch {
     return null;
   }
 }
 
 function defaultLeftWidth(): number {
-  return clampWidth(window.innerWidth * LAYOUT_LEFT_RATIO, 120, 420);
+  return clampWidth(window.innerWidth * LAYOUT_LEFT_RATIO, LEFT_MIN, 420);
 }
 
 function defaultRightWidth(): number {
-  return clampWidth(window.innerWidth * LAYOUT_RIGHT_RATIO, 140, 560);
+  return clampWidth(window.innerWidth * LAYOUT_RIGHT_RATIO, RIGHT_MIN, 560);
 }
 
 export function PanelApp() {
@@ -95,6 +117,14 @@ export function PanelApp() {
   const rightWidthRef = useRef(rightWidth);
   rightWidthRef.current = rightWidth;
 
+  const allotmentRef = useRef<AllotmentHandle | null>(null);
+  // Width of the Allotment host. 0 until measured; a hidden webview keeps the
+  // last known width so re-showing does not collapse the panes.
+  const [hostWidth, setHostWidth] = useState(0);
+  // Allotment only adds its panes once the container has a non-zero size, and
+  // reports that first layout through onChange. Resizing before that is a no-op.
+  const [layoutReady, setLayoutReady] = useState(false);
+
   const saveLayout = useCallback((left: number, right: number) => {
     try {
       localStorage.setItem(layoutStorageKey(), JSON.stringify({ left, right }));
@@ -102,6 +132,43 @@ export function PanelApp() {
       // localStorage unavailable
     }
   }, []);
+
+  // Track the host width. Webviews are hidden with display:none when the user
+  // switches to another panel/sidebar view, which makes the observer report 0;
+  // ignore those so we never re-layout (and persist) against a zero-width host.
+  //
+  // A callback ref is required: the whole layout is unmounted while the initial
+  // loading placeholder is shown, so a plain useEffect([]) would keep observing
+  // a detached node and never fire again.
+  const hostObserverRef = useRef<ResizeObserver | null>(null);
+  const attachAllotmentHost = useCallback((node: HTMLDivElement | null) => {
+    hostObserverRef.current?.disconnect();
+    hostObserverRef.current = null;
+    if (!node || typeof ResizeObserver === "undefined") return;
+    const observer = new ResizeObserver((entries) => {
+      const width = Math.round(entries[0]?.contentRect.width ?? 0);
+      if (width <= 0) return;
+      setHostWidth((prev) => (prev === width ? prev : width));
+    });
+    observer.observe(node);
+    hostObserverRef.current = observer;
+  }, []);
+
+  useEffect(() => () => hostObserverRef.current?.disconnect(), []);
+
+  // Allotment dumps every container-width delta into the last pane, so a panel
+  // resize, hiding the branch tree, or a hide/show cycle drags the details pane
+  // to its min/max. Pin it back to the width the user actually chose instead.
+  useEffect(() => {
+    if (!layoutReady || !showRight || hostWidth <= 0) return;
+    const maxRight = Math.max(
+      RIGHT_MIN,
+      Math.min(RIGHT_MAX, hostWidth - MIDDLE_MIN),
+    );
+    const right = clampWidth(rightWidth, RIGHT_MIN, maxRight);
+    const middle = Math.max(MIDDLE_MIN, hostWidth - right);
+    allotmentRef.current?.resize([middle, right]);
+  }, [layoutReady, hostWidth, rightWidth, showRight]);
 
   const toggleLeft = useCallback(() => setShowLeft((v) => !v), []);
   const toggleRight = useCallback(() => setShowRight((v) => !v), []);
@@ -112,17 +179,19 @@ export function PanelApp() {
       e.preventDefault();
       const startX = e.clientX;
       const startWidth = leftWidth;
+      let current = startWidth;
       const onMove = (ev: MouseEvent) => {
-        const newWidth = Math.max(
-          140,
-          Math.min(500, startWidth + ev.clientX - startX),
+        current = clampWidth(
+          startWidth + ev.clientX - startX,
+          LEFT_MIN,
+          LEFT_MAX,
         );
-        setLeftWidth(newWidth);
+        setLeftWidth(current);
       };
       const onUp = () => {
         document.removeEventListener("mousemove", onMove);
         document.removeEventListener("mouseup", onUp);
-        saveLayout(leftWidthRef.current, rightWidthRef.current);
+        saveLayout(current, rightWidthRef.current);
       };
       document.addEventListener("mousemove", onMove);
       document.addEventListener("mouseup", onUp);
@@ -166,7 +235,7 @@ export function PanelApp() {
         {/* Left branch panel — outside Allotment to avoid flicker */}
         <div
           style={{
-            width: showLeft ? leftWidth : 28,
+            width: showLeft ? leftWidth : COLLAPSED_WIDTH,
             height: "100%",
             flexShrink: 0,
             overflow: "hidden",
@@ -240,17 +309,20 @@ export function PanelApp() {
         </div>
 
         {/* Middle + Right in Allotment */}
-        <div style={{ flex: 1, minWidth: 0 }}>
+        <div ref={attachAllotmentHost} style={{ flex: 1, minWidth: 0 }}>
           <Allotment
+            ref={allotmentRef}
             proportionalLayout={false}
-            onChange={(sizes) => {
+            onChange={() => {
+              if (!layoutReady) setLayoutReady(true);
+            }}
+            onDragEnd={(sizes) => {
               const right = Math.round(sizes[1] ?? rightWidthRef.current);
-              if (right === rightWidthRef.current) return;
               setRightWidth(right);
               saveLayout(leftWidthRef.current, right);
             }}
           >
-            <Allotment.Pane minSize={180}>
+            <Allotment.Pane minSize={MIDDLE_MIN}>
               <div
                 ref={middleRef}
                 style={{
@@ -265,8 +337,8 @@ export function PanelApp() {
             </Allotment.Pane>
             <Allotment.Pane
               preferredSize={rightWidth}
-              minSize={showRight ? 140 : 28}
-              maxSize={showRight ? 600 : 28}
+              minSize={showRight ? RIGHT_MIN : COLLAPSED_WIDTH}
+              maxSize={showRight ? RIGHT_MAX : COLLAPSED_WIDTH}
               visible
             >
               {showRight ? (
