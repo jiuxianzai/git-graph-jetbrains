@@ -1,5 +1,16 @@
 # Changelog / 更新日志
 
+## [1.0.5] - 2026-11-09
+
+### Changed / 调整
+- **Removed the push toast outline artifacts** — The toast is now a borderless card with a dark outer ring, so neither the green/red accent strip nor the bright top-left highlight appears / 去掉推送 toast 的边框残影：改为无边框卡片 + 深色外环，不再出现左侧强调色条或左上角白色亮边
+
+### Fixed / 修复
+- **Push toast could be hidden behind VS Code notifications** — The branch push flow no longer fires a native notification on success, so the in-panel result toast is never covered; the toast moved to the top-right, away from VS Code's bottom-right notification area / 推送 toast 不再被 VS Code 通知遮挡：分支推送成功后不再额外弹原生通知，面板内结果提示移到右上角，避开 VS Code 右下角通知区域
+- **Push toast visual polish** — The flat box is now a compact card with a circular status icon, title/message hierarchy, subtle depth and a proper close button / 推送 toast 样式重做：改成带圆形状态图标、标题/正文层级、柔和阴影和规范关闭按钮的卡片
+- **Push no longer fails silently** — The webview dropped every request after 10 seconds, so slow pushes timed out even though git was still running, and the branch push dialog closed before any error could be shown. Push requests now get a 5-minute timeout, failures keep the dialog open with the git error, and the branch's actual default remote is used instead of hard-coded `origin` / 推送不再静默失败：Webview 对所有请求固定 10 秒超时，网络稍慢就会误报超时（此时 git 其实还在推送），而分支推送弹窗又会先关闭、只把错误打到 console。现在推送请求使用 5 分钟超时，失败时弹窗保持打开并显示 git 错误，同时改为使用分支实际的默认远程而不是写死 `origin`
+- **Push progress and completion feedback** — The panel shows a labeled progress indicator and an in-dialog “Pushing…” state; on success/failure it shows a result toast, and the full Push panel keeps a short “pushed” state visible before closing / 推送进度与完成反馈：面板顶部显示带分支名的进度提示，弹窗内显示“正在推送…”并禁用按钮；成功/失败后显示结果 toast，完整推送面板在关闭前也会短暂展示“已推送”状态
+
 ## [1.0.4] - 2026-11-06
 
 ### Fixed / 修复

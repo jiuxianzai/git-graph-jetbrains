@@ -723,9 +723,13 @@ export class GitService {
   }
 
   async pull(branchName?: string): Promise<void> {
-    const args = ["pull", "--autostash"];
+    // Be explicit about the reconciliation strategy. Since Git 2.27 `git pull`
+    // aborts on divergent branches unless pull.rebase/pull.ff is configured,
+    // which looked like "nothing happened" in the branch context menu.
+    const args = ["pull", "--no-rebase", "--autostash"];
     if (branchName) {
-      args.push("origin", branchName);
+      const remote = await this.getDefaultRemote(branchName);
+      args.push(remote, branchName);
     }
     await this.execGit(args);
     this.invalidateCache();
@@ -734,7 +738,8 @@ export class GitService {
   async pullRebase(branchName?: string): Promise<void> {
     const args = ["pull", "--rebase", "--autostash"];
     if (branchName) {
-      args.push("origin", branchName);
+      const remote = await this.getDefaultRemote(branchName);
+      args.push(remote, branchName);
     }
     await this.execGit(args);
     this.invalidateCache();

@@ -1,7 +1,9 @@
+import { resolveRequestTimeout } from "./timeouts";
 import type {
   Bridge,
   EventMessage,
   RequestMessage,
+  RequestOptions,
   ResponseMessage,
 } from "./types";
 
@@ -41,21 +43,31 @@ export function createVSCodeBridge(): Bridge {
   });
 
   return {
-    request(command, params = {}) {
+    request(command, params = {}, options: RequestOptions = {}) {
       return new Promise((resolve, reject) => {
         const id = crypto.randomUUID();
-        const timeout = setTimeout(() => {
-          pendingRequests.delete(id);
-          reject(new Error(`Request '${command}' timed out`));
-        }, 10_000);
+        const timeoutMs = resolveRequestTimeout(command, options.timeoutMs);
+        const timeout =
+          timeoutMs > 0
+            ? setTimeout(() => {
+                pendingRequests.delete(id);
+                reject(
+                  new Error(
+                    `Request '${command}' timed out after ${Math.round(
+                      timeoutMs / 1000,
+                    )}s`,
+                  ),
+                );
+              }, timeoutMs)
+            : undefined;
 
         pendingRequests.set(id, {
           resolve: (v) => {
-            clearTimeout(timeout);
+            if (timeout) clearTimeout(timeout);
             resolve(v);
           },
           reject: (e) => {
-            clearTimeout(timeout);
+            if (timeout) clearTimeout(timeout);
             reject(e);
           },
         });

@@ -85,8 +85,17 @@ export const zhPanel: Record<string, string> = {
 
   // Push dialog
   "Push Branch": "推送分支",
-  "Push branch '{branch}' to remote 'origin'.":
-    "将分支“{branch}”推送到远程“origin”。",
+  "Push branch '{branch}' to its remote.": "将分支“{branch}”推送到其远程仓库。",
+  "Pushing branch '{branch}'...": "正在推送分支“{branch}”…",
+  "Pushed branch '{branch}'": "已推送分支“{branch}”",
+  "Push complete": "推送完成",
+  "Push failed": "推送失败",
+  "Update complete": "更新完成",
+  "Updated branch '{branch}'": "已更新分支“{branch}”",
+  "Update failed": "更新失败",
+  "Merge failed": "合并失败",
+  "Rebase failed": "变基失败",
+  Dismiss: "关闭",
   "Force Push": "强制推送",
   Push: "推送",
 

@@ -113,10 +113,24 @@ export type CommandType =
   | "executeRollback"
   | "closeRollbackPanel";
 
+export interface RequestOptions {
+  /**
+   * How long the webview waits for a response, in milliseconds.
+   * Defaults to 10s. Pass 0 to wait indefinitely (long git network operations).
+   */
+  timeoutMs?: number;
+}
+
 export interface Bridge {
   request(
     command: CommandType | string,
     params?: Record<string, unknown>,
+    options?: RequestOptions,
   ): Promise<unknown>;
   onEvent(handler: (event: string, data: unknown) => void): () => void;
+}
+
+export interface ProgressOptions extends RequestOptions {
+  /** Shown in the panel progress indicator while the command runs. */
+  label?: string;
 }

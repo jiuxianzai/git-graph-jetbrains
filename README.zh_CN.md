@@ -54,7 +54,7 @@ JetBrains s.r.o. 的商标；“Visual Studio Code” 是 Microsoft Corporation 
 | **横向滚动** | 当日志确实放不下时，**图谱与消息一起横向滚动**，**作者/日期固定在右侧**；长分支标签在消息后显示，超出省略并可悬停查看。 |
 | **交互修复** | 提交面板双击文件不再选中文字；合并/变基右键菜单项不再以 `?` 结尾（问号只保留在确认弹窗中）。 |
 | **Worktree 检出** | 分支已在其他 worktree 检出时，给出明确提示并询问是否**在新窗口打开该 worktree**；未提交更改冲突也会说明原因，不再静默失败。 |
-| **打包** | 本分支重命名为 `jiuxianzai.git-graph-jetbrains`，以 `1.0.0` 作为分支首个发布版本。 |
+| **打包** | 本分支重命名为 `jiuxianzai.git-graph-jetbrains`，从 `1.0.0` 开始发布；当前版本为 `1.0.5`。 |
 
 其余能力（Git 图谱引擎、提交/Shelf 面板、三方合并编辑器、冲突管理、
 Cherry-Pick/Rebase/Merge、文件历史与右键菜单）均来自上游项目。
@@ -102,7 +102,7 @@ ext install jiuxianzai.git-graph-jetbrains
 **从 VSIX 安装：**
 
 ```bash
-code --install-extension git-graph-jetbrains-1.0.0.vsix
+code --install-extension git-graph-jetbrains-1.0.5.vsix
 ```
 
 > 如果之前安装过 `autemj.idea-like-git-graph`，两者 ID 不同，可以共存；

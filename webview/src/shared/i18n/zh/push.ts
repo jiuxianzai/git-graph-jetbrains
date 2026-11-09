@@ -29,6 +29,7 @@ export const zhPush: Record<string, string> = {
   Merge: "合并",
 
   // Notifications
+  "Everything is up to date": "所有内容都已是最新",
   "Pushed {count} commit to {remote}/{branch}":
     "已将 {count} 个提交推送到 {remote}/{branch}",
   "Pushed {count} commits to {remote}/{branch}":

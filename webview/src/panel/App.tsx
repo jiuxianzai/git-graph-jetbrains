@@ -11,37 +11,51 @@ import { DetailPanel } from "./components/DetailPanel";
 import { GitGraphPanel } from "./components/GitGraphPanel";
 import { Toolbar } from "./components/Toolbar";
 
-function ProgressBar({ visible }: { visible: boolean }) {
+function ProgressBar({
+  visible,
+  label,
+}: {
+  visible: boolean;
+  label?: string | null;
+}) {
   if (!visible) return null;
   return (
-    <div
-      style={{
-        position: "absolute",
-        top: 0,
-        left: 0,
-        right: 0,
-        height: 3,
-        zIndex: 10000,
-        overflow: "hidden",
-        background: "rgba(0, 122, 204, 0.15)",
-      }}
-    >
+    <>
       <div
         style={{
-          height: "100%",
-          width: "40%",
-          background:
-            "linear-gradient(90deg, transparent, #007acc 30%, #3794ff 70%, transparent)",
-          animation: "progress-slide 1s infinite linear",
+          position: "absolute",
+          top: 0,
+          left: 0,
+          right: 0,
+          height: 3,
+          zIndex: 10000,
+          overflow: "hidden",
+          background: "rgba(0, 122, 204, 0.15)",
         }}
-      />
-      <style>
-        {`@keyframes progress-slide {
-          0% { transform: translateX(-100%); }
-          100% { transform: translateX(250%); }
-        }`}
-      </style>
-    </div>
+      >
+        <div
+          style={{
+            height: "100%",
+            width: "40%",
+            background:
+              "linear-gradient(90deg, transparent, #007acc 30%, #3794ff 70%, transparent)",
+            animation: "progress-slide 1s infinite linear",
+          }}
+        />
+        <style>
+          {`@keyframes progress-slide {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(250%); }
+          }`}
+        </style>
+      </div>
+      {label && (
+        <div className="panel-operation-label" role="status" aria-live="polite">
+          <span className="panel-operation-spinner" />
+          {label}
+        </div>
+      )}
+    </>
   );
 }
 
@@ -101,6 +115,7 @@ export function PanelApp() {
   const loading = usePanelStore((s) => s.loading);
   const commits = usePanelStore((s) => s.commits);
   const operationInProgress = usePanelStore((s) => s.operationInProgress);
+  const operationLabel = usePanelStore((s) => s.operationLabel);
   const fetchInitialData = usePanelStore((s) => s.fetchInitialData);
 
   const [showLeft, setShowLeft] = useState(true);
@@ -230,7 +245,10 @@ export function PanelApp() {
         position: "relative",
       }}
     >
-      <ProgressBar visible={operationInProgress || loading} />
+      <ProgressBar
+        visible={operationInProgress || loading}
+        label={operationInProgress ? operationLabel : null}
+      />
       <div style={{ flex: 1, display: "flex", minHeight: 0 }}>
         {/* Left branch panel — outside Allotment to avoid flicker */}
         <div

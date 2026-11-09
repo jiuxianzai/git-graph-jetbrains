@@ -733,10 +733,17 @@ export function activate(context: vscode.ExtensionContext) {
     if (!gitService) return NOT_GIT_REPO;
     const branchName = params.branchName as string;
     const force = params.force as boolean | undefined;
+    const remote =
+      (params.remote as string | undefined) ||
+      (await gitService.getDefaultRemote(branchName));
     return withProgress(messageRouter, async () => {
-      await gitService.push(branchName, force ?? false);
+      const output = await gitService.push(branchName, force ?? false, remote);
       messageRouter.broadcastEvent("gitStateChanged", { scope: "all" });
-      return { success: true };
+      messageRouter.broadcastEvent("commitStateChanged", {});
+      const isUpToDate =
+        output?.includes("Everything up-to-date") ||
+        output?.includes("up to date");
+      return { success: true, data: { output: output ?? "", isUpToDate } };
     });
   });
 

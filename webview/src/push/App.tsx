@@ -2,7 +2,7 @@ import { Allotment } from "allotment";
 import { useCallback, useEffect, useRef, useState } from "react";
 import CodiconListFlat from "~icons/codicon/list-flat";
 import CodiconListTree from "~icons/codicon/list-tree";
-import { bridge } from "../shared/bridge";
+import { bridge, LONG_RUNNING_TIMEOUT_MS } from "../shared/bridge";
 import { CommitInfo } from "../shared/components/CommitInfo";
 import { FileTree } from "../shared/components/FileTree";
 import { t } from "../shared/i18n";
@@ -79,6 +79,7 @@ export function PushApp() {
   const [files, setFiles] = useState<DiffFile[]>([]);
   const [pushing, setPushing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [showPushMenu, setShowPushMenu] = useState(false);
   const [pushRejected, setPushRejected] = useState<PushRejectedState>({
     show: false,
@@ -138,13 +139,18 @@ export function PushApp() {
     async (force = false) => {
       setPushing(true);
       setError(null);
+      setSuccessMessage(null);
       try {
-        const result = (await bridge.request("executePush", {
-          branchName,
-          remote: targetRemote,
-          targetBranch: targetBranch,
-          force,
-        })) as { data?: { output?: string; isUpToDate?: boolean } };
+        const result = (await bridge.request(
+          "executePush",
+          {
+            branchName,
+            remote: targetRemote,
+            targetBranch: targetBranch,
+            force,
+          },
+          { timeoutMs: LONG_RUNNING_TIMEOUT_MS },
+        )) as { data?: { output?: string; isUpToDate?: boolean } };
         setPushing(false);
         const isUpToDate = result?.data?.isUpToDate;
         const message = isUpToDate
@@ -160,11 +166,13 @@ export function PushApp() {
                 remote: targetRemote,
                 branch: targetBranch,
               });
-        // Show VS Code native notification then close
+        setSuccessMessage(message);
+        // Show VS Code native notification, then close after a short pause so
+        // the in-panel success state is actually visible.
         bridge.request("showInfoNotification", { message }).catch(() => {});
         setTimeout(() => {
           bridge.request("closePushPanel");
-        }, 500);
+        }, 1200);
       } catch (err) {
         setPushing(false);
         const msg = err instanceof Error ? err.message : String(err);
@@ -190,25 +198,35 @@ export function PushApp() {
   const handleRebaseAndPush = useCallback(async () => {
     setPushRejected({ show: false, branchName: "" });
     setError(null);
+    setSuccessMessage(null);
     setPushing(true);
     try {
-      await bridge.request("pullRebase", { branchName });
+      await bridge.request(
+        "pullRebase",
+        { branchName },
+        { timeoutMs: LONG_RUNNING_TIMEOUT_MS },
+      );
       // After successful rebase, retry push
-      await bridge.request("executePush", {
-        branchName,
-        remote: targetRemote,
-        targetBranch: targetBranch,
-        force: false,
-      });
+      await bridge.request(
+        "executePush",
+        {
+          branchName,
+          remote: targetRemote,
+          targetBranch: targetBranch,
+          force: false,
+        },
+        { timeoutMs: LONG_RUNNING_TIMEOUT_MS },
+      );
       setPushing(false);
       const message = t("Rebased and pushed to {remote}/{branch}", {
         remote: targetRemote,
         branch: targetBranch,
       });
+      setSuccessMessage(message);
       bridge.request("showInfoNotification", { message }).catch(() => {});
       setTimeout(() => {
         bridge.request("closePushPanel");
-      }, 500);
+      }, 1200);
     } catch (err) {
       setPushing(false);
       const msg = err instanceof Error ? err.message : String(err);
@@ -220,25 +238,35 @@ export function PushApp() {
   const handleMergeAndPush = useCallback(async () => {
     setPushRejected({ show: false, branchName: "" });
     setError(null);
+    setSuccessMessage(null);
     setPushing(true);
     try {
-      await bridge.request("pullMerge", { branchName });
+      await bridge.request(
+        "pullMerge",
+        { branchName },
+        { timeoutMs: LONG_RUNNING_TIMEOUT_MS },
+      );
       // After successful merge, retry push
-      await bridge.request("executePush", {
-        branchName,
-        remote: targetRemote,
-        targetBranch: targetBranch,
-        force: false,
-      });
+      await bridge.request(
+        "executePush",
+        {
+          branchName,
+          remote: targetRemote,
+          targetBranch: targetBranch,
+          force: false,
+        },
+        { timeoutMs: LONG_RUNNING_TIMEOUT_MS },
+      );
       setPushing(false);
       const message = t("Merged and pushed to {remote}/{branch}", {
         remote: targetRemote,
         branch: targetBranch,
       });
+      setSuccessMessage(message);
       bridge.request("showInfoNotification", { message }).catch(() => {});
       setTimeout(() => {
         bridge.request("closePushPanel");
-      }, 500);
+      }, 1200);
     } catch (err) {
       setPushing(false);
       const msg = err instanceof Error ? err.message : String(err);
@@ -456,6 +484,18 @@ export function PushApp() {
       {/* Footer */}
       <div className="push-footer">
         {error && <span className="push-error">{error}</span>}
+        {successMessage && (
+          <span className="push-success" role="status">
+            <span aria-hidden="true">✓</span>
+            {successMessage}
+          </span>
+        )}
+        {pushing && (
+          <span className="push-progress-status" role="status">
+            <span className="push-progress-status__spinner" />
+            {t("Pushing branch '{branch}'...", { branch: branchName })}
+          </span>
+        )}
         <span style={{ flex: 1 }} />
         <button
           type="button"

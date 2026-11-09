@@ -56,7 +56,7 @@ Compared with the upstream `aotemj/jetbrains-git-graph` at `0.4.17`:
 | **Wide commits** | When the log genuinely overflows, the **branch graph and message scroll together horizontally** while **author/date stay pinned** on the right. Long refs are shown next to the subject with ellipsis and tooltips. |
 | **Interaction fixes** | Double-clicking a file in the commit panel no longer selects its text. Merge/rebase context-menu labels no longer end with `?` (the question mark stays in the confirmation dialog). |
 | **Worktree-aware checkout** | When a branch is checked out in another worktree, checkout shows a clear message and offers to **open that worktree in a new window**. Dirty-tree conflicts are explained instead of failing silently. |
-| **Packaging** | Renamed to `jiuxianzai.git-graph-jetbrains` for this fork, versioned `1.0.0` as the first release of the fork. |
+| **Packaging** | Renamed to `jiuxianzai.git-graph-jetbrains` for this fork, starting at `1.0.0`; the current release is `1.0.5`. |
 
 Everything else — the Git graph engine, commit/shelf panel, 3-way merge
 editor, conflict management, cherry-pick/rebase/merge actions, file history and
@@ -92,6 +92,26 @@ context menus — comes from the upstream project.
 
 ---
 
+## Changelog / 更新日志
+
+### 1.0.5 — 2026-11-09
+
+- **Push no longer fails silently** — Push/network requests get a 5-minute timeout instead of the old 10-second limit, failed pushes keep the dialog open with the git error, and the branch's real default remote is used instead of a hard-coded `origin`.
+  / **推送不再静默失败** — 推送及网络请求的超时从固定 10 秒改为 5 分钟；推送失败时弹窗保持打开并显示 git 错误；同时使用分支实际的默认远程，不再写死 `origin`。
+- **Pull works on diverged branches** — `git pull` now passes an explicit merge strategy (`--no-rebase`), so a rebased/diverged `main` no longer dies with “Need to specify how to reconcile divergent branches”.
+  / **分叉分支可以正常拉取** — `git pull` 现在显式使用合并策略（`--no-rebase`），变基后与远程分叉的 `main` 不会再因为 “Need to specify how to reconcile divergent branches” 失败。
+- **Visible progress and result feedback** — Push shows a labeled progress bar and an in-dialog “Pushing…” state; update/merge/rebase failures now surface as a toast with the actual git error instead of only being written to the console.
+  / **进度与结果反馈** — 推送时显示带分支名的进度条和弹窗内“正在推送…”状态；更新、合并、变基失败会通过右上角 toast 显示真实 git 错误，而不是只写进 console。
+- **Push toast cleanup** — The result toast moved to the top-right (away from VS Code's native bottom-right notifications) and was restyled as a borderless rounded card; the duplicate native notification on success was removed.
+  / **推送提示优化** — 结果 toast 移到右上角，避开 VS Code 右下角原生通知；改为无边框圆角卡片，并去掉成功时重复的原生通知。
+- **Release packaging** — Versioned VSIX files are now stored under `releases/v<version>/`; the release script writes there automatically.
+  / **发布包归档** — 各版本 VSIX 统一存放到 `releases/v<version>/`，发布脚本会自动写入该目录。
+
+Older releases are documented in [`CHANGELOG.md`](./CHANGELOG.md).
+更早版本见 [`CHANGELOG.md`](./CHANGELOG.md)。
+
+---
+
 ## Installation
 
 **From the Marketplace:**
@@ -105,7 +125,7 @@ or search for **Git Graph (JetBrains)** in the Extensions view.
 **From a VSIX:**
 
 ```bash
-code --install-extension git-graph-jetbrains-1.0.0.vsix
+code --install-extension git-graph-jetbrains-1.0.5.vsix
 ```
 
 > If you previously installed `autemj.idea-like-git-graph`, the two extensions

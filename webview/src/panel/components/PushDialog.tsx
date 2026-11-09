@@ -1,29 +1,53 @@
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { t } from "../../shared/i18n";
 
 export interface PushDialogProps {
   branchName: string;
   onClose: () => void;
-  onPush: (force: boolean) => void;
+  /** Resolves when the push finished; rejects with the git error on failure. */
+  onPush: (force: boolean) => Promise<void>;
 }
 
 export function PushDialog({ branchName, onClose, onPush }: PushDialogProps) {
   const backdropRef = useRef<HTMLDivElement>(null);
+  const [pushing, setPushing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Keep the latest callback in a ref so a re-render cannot restart a push.
+  const onPushRef = useRef(onPush);
+  onPushRef.current = onPush;
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
+      if (e.key === "Escape" && !pushing) {
         onClose();
       }
     };
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [onClose]);
+  }, [onClose, pushing]);
 
   const handleBackdropClick = useCallback(
     (e: React.MouseEvent) => {
-      if (e.target === backdropRef.current) {
+      if (e.target === backdropRef.current && !pushing) {
         onClose();
+      }
+    },
+    [onClose, pushing],
+  );
+
+  const handlePush = useCallback(
+    async (force: boolean) => {
+      setPushing(true);
+      setError(null);
+      try {
+        await onPushRef.current(force);
+        // The parent shows the result toast; close only after success.
+        onClose();
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        setError(message);
+        setPushing(false);
       }
     },
     [onClose],
@@ -33,6 +57,7 @@ export function PushDialog({ branchName, onClose, onPush }: PushDialogProps) {
     <div
       ref={backdropRef}
       onClick={handleBackdropClick}
+      aria-busy={pushing}
       style={{
         position: "fixed",
         inset: 0,
@@ -75,10 +100,33 @@ export function PushDialog({ branchName, onClose, onPush }: PushDialogProps) {
             lineHeight: 1.5,
           }}
         >
-          {t("Push branch '{branch}' to remote 'origin'.", {
+          {t("Push branch '{branch}' to its remote.", {
             branch: branchName,
           })}
         </div>
+
+        {/* In-flight / failure status */}
+        {pushing && (
+          <div
+            className="push-dialog-status push-dialog-status--progress"
+            role="status"
+            aria-live="polite"
+          >
+            <span className="push-toast-spinner" />
+            <span>
+              {t("Pushing branch '{branch}'...", { branch: branchName })}
+            </span>
+          </div>
+        )}
+        {!pushing && error && (
+          <div
+            className="push-dialog-status push-dialog-status--error"
+            role="alert"
+          >
+            <span style={{ fontWeight: 700 }}>!</span>
+            <span>{error}</span>
+          </div>
+        )}
 
         {/* Buttons */}
         <div
@@ -92,7 +140,8 @@ export function PushDialog({ branchName, onClose, onPush }: PushDialogProps) {
           <button
             type="button"
             className="push-dialog-btn push-dialog-danger"
-            onClick={() => onPush(true)}
+            onClick={() => handlePush(true)}
+            disabled={pushing}
             style={{ fontWeight: 500 }}
           >
             {t("Force Push")}
@@ -102,15 +151,17 @@ export function PushDialog({ branchName, onClose, onPush }: PushDialogProps) {
             type="button"
             className="push-dialog-btn push-dialog-secondary"
             onClick={onClose}
+            disabled={pushing}
           >
             {t("Cancel")}
           </button>
           <button
             type="button"
             className="push-dialog-btn push-dialog-primary"
-            onClick={() => onPush(false)}
+            onClick={() => handlePush(false)}
+            disabled={pushing}
           >
-            {t("Push")}
+            {pushing ? t("Pushing...") : t("Push")}
           </button>
         </div>
       </div>

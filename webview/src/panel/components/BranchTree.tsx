@@ -1,6 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { bridge, bridgeWithProgress } from "../../shared/bridge";
+import {
+  bridge,
+  bridgeWithProgress,
+  LONG_RUNNING_TIMEOUT_MS,
+} from "../../shared/bridge";
 import { Tooltip } from "../../shared/components/Tooltip";
 import { useModifierClickSelection } from "../../shared/hooks/useModifierClickSelection";
 import { usePreventSelect } from "../../shared/hooks/usePreventSelect";
@@ -351,6 +355,22 @@ export function BranchTree({
     branchName: string;
   } | null>(null);
 
+  // Result feedback shown for push/update/merge/rebase operations.
+  const [statusToast, setStatusToast] = useState<{
+    kind: "success" | "error";
+    title: string;
+    message: string;
+  } | null>(null);
+
+  useEffect(() => {
+    if (!statusToast) return;
+    const timeout = setTimeout(
+      () => setStatusToast(null),
+      statusToast.kind === "success" ? 4000 : 10000,
+    );
+    return () => clearTimeout(timeout);
+  }, [statusToast]);
+
   const handleContextMenu = useCallback(
     (e: React.MouseEvent, branch: BranchInfo) => {
       e.preventDefault();
@@ -659,6 +679,7 @@ export function BranchTree({
                 closeContextMenu();
                 setPushDialog({ branchName });
               }}
+              onToast={setStatusToast}
             />,
             document.body,
           )}
@@ -706,17 +727,79 @@ export function BranchTree({
               branchName={pushDialog.branchName}
               onClose={() => setPushDialog(null)}
               onPush={async (force) => {
-                setPushDialog(null);
+                const branchName = pushDialog.branchName;
                 try {
-                  await bridgeWithProgress("pushBranch", {
-                    branchName: pushDialog.branchName,
-                    force,
+                  const result = (await bridgeWithProgress(
+                    "pushBranch",
+                    { branchName, force },
+                    {
+                      label: t("Pushing branch '{branch}'...", {
+                        branch: branchName,
+                      }),
+                      timeoutMs: LONG_RUNNING_TIMEOUT_MS,
+                    },
+                  )) as { data?: { isUpToDate?: boolean } } | undefined;
+                  const message = result?.data?.isUpToDate
+                    ? t("Everything is up to date")
+                    : t("Pushed branch '{branch}'", {
+                        branch: branchName,
+                      });
+                  setStatusToast({
+                    kind: "success",
+                    title: t("Push complete"),
+                    message,
                   });
                 } catch (err) {
-                  console.error("Push failed:", err);
+                  const message =
+                    err instanceof Error ? err.message : String(err);
+                  setStatusToast({
+                    kind: "error",
+                    title: t("Push failed"),
+                    message,
+                  });
+                  // Keep the dialog open and let it render the error.
+                  throw err;
                 }
               }}
             />,
+            document.body,
+          )}
+
+        {/* Operation result toast */}
+        {statusToast &&
+          createPortal(
+            <div
+              className={`push-toast push-toast--${statusToast.kind}`}
+              role={statusToast.kind === "error" ? "alert" : "status"}
+              aria-live="polite"
+            >
+              <span className="push-toast-icon" aria-hidden="true">
+                {statusToast.kind === "success" ? "✓" : "!"}
+              </span>
+              <div className="push-toast-content">
+                <div className="push-toast-title">{statusToast.title}</div>
+                <div className="push-toast-message">{statusToast.message}</div>
+              </div>
+              <button
+                type="button"
+                className="push-toast-close"
+                aria-label={t("Dismiss")}
+                onClick={() => setStatusToast(null)}
+              >
+                <svg
+                  width="10"
+                  height="10"
+                  viewBox="0 0 16 16"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                  aria-hidden="true"
+                >
+                  <path d="M4 4l8 8M12 4l-8 8" />
+                </svg>
+              </button>
+            </div>,
             document.body,
           )}
       </div>
@@ -1061,6 +1144,7 @@ function BranchContextMenu({
   onClose,
   onCreateBranch,
   onPush,
+  onToast,
 }: {
   x: number;
   y: number;
@@ -1069,6 +1153,11 @@ function BranchContextMenu({
   onClose: () => void;
   onCreateBranch: (startPoint: string, defaultName: string) => void;
   onPush: (branchName: string) => void;
+  onToast: (toast: {
+    kind: "success" | "error";
+    title: string;
+    message: string;
+  }) => void;
 }) {
   const menuRef = useRef<HTMLDivElement>(null);
   const [position, setPosition] = useState<{
@@ -1245,12 +1334,22 @@ function BranchContextMenu({
     onPush(branch.name);
   };
 
+  const reportError = (title: string, err: unknown) => {
+    const message = err instanceof Error ? err.message : String(err);
+    onToast({ kind: "error", title, message });
+  };
+
   const handleUpdate = async () => {
     onClose();
     try {
       await bridgeWithProgress("pullBranch", { branchName: branch.name });
+      onToast({
+        kind: "success",
+        title: t("Update complete"),
+        message: t("Updated branch '{branch}'", { branch: branch.name }),
+      });
     } catch (err) {
-      console.error("Update failed:", err);
+      reportError(t("Update failed"), err);
     }
   };
 
@@ -1267,7 +1366,7 @@ function BranchContextMenu({
     try {
       await bridgeWithProgress("mergeBranch", { branchName: branch.name });
     } catch (err) {
-      console.error("Merge failed:", err);
+      reportError(t("Merge failed"), err);
     }
   };
 
@@ -1284,7 +1383,7 @@ function BranchContextMenu({
     try {
       await bridgeWithProgress("rebaseBranch", { onto: branch.name });
     } catch (err) {
-      console.error("Rebase failed:", err);
+      reportError(t("Rebase failed"), err);
     }
   };
 
@@ -1296,7 +1395,7 @@ function BranchContextMenu({
         rebaseOnto: currentBranch,
       });
     } catch (err) {
-      console.error("Checkout and rebase failed:", err);
+      reportError(t("Rebase failed"), err);
     }
   };
 

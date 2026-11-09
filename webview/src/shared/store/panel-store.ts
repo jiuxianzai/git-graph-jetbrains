@@ -54,6 +54,8 @@ interface PanelStore {
   loading: boolean;
   hasMore: boolean;
   operationInProgress: boolean;
+  /** Optional label describing the current operation (e.g. "Pushing branch…"). */
+  operationLabel: string | null;
 
   fetchInitialData: () => Promise<void>;
   loadMore: () => Promise<void>;
@@ -224,6 +226,7 @@ export const usePanelStore = create<PanelStore>((set, get) => ({
   loading: false,
   hasMore: true,
   operationInProgress: false,
+  operationLabel: null,
 
   async fetchInitialData() {
     set({ loading: true });

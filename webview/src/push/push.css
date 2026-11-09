@@ -149,6 +149,38 @@
   font-size: 12px;
 }
 
+.push-success {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #499c54;
+  font-size: 12px;
+}
+
+.push-progress-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--description-fg, #999);
+  font-size: 12px;
+}
+
+.push-progress-status__spinner {
+  width: 11px;
+  height: 11px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  border: 2px solid rgba(53, 116, 240, 0.25);
+  border-top-color: #3574f0;
+  animation: push-spin 0.7s linear infinite;
+}
+
+@keyframes push-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .push-btn {
   padding: 6px 16px;
   border: none;

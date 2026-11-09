@@ -67,7 +67,9 @@ VSCE="$ROOT/node_modules/.bin/vsce"
 NAME=$(node -p "require('./package.json').name")
 PUBLISHER=$(node -p "require('./package.json').publisher")
 VERSION=$(node -p "require('./package.json').version")
-VSIX="$ROOT/${NAME}-${VERSION}.vsix"
+VSIX_DIR="$ROOT/releases/v${VERSION}"
+VSIX="$VSIX_DIR/${NAME}-${VERSION}.vsix"
+mkdir -p "$VSIX_DIR"
 
 info "扩展:   $PUBLISHER.$NAME"
 info "版本:   $VERSION"
