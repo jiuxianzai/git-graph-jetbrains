@@ -1,5 +1,17 @@
 # Changelog / 更新日志
 
+## [1.1.0] - 2026-11-11
+
+### Added / 新增
+- **Branch comparison with a split commit view** — Right-click a branch and choose "Compare Changes" to compare it with the current branch. The log splits into two panes: the top lists commits unique to the current branch, the bottom lists commits unique to the compared branch. Each side keeps its own graph and scroll position, the divider is draggable, and the header shows ahead/behind counts. Close with the × button or Esc / 分支比较（上下分屏）：右键分支选择“比较差异”即可与当前分支对比。日志区上下分屏，上栏只显示当前分支独有的提交，下栏只显示目标分支独有的提交；两边各自带提交图、独立滚动，分隔条可拖动，顶部显示领先/落后数量，点 × 或按 Esc 退出
+- **Per-side changed files with three-dot diffs** — The details pane gains a "Changed files" tab with a target/base switch. Every file opens side-by-side against the merge base, so changes that only exist on the other branch are never shown as reverse edits / 两侧变更文件 + 三点 diff：详情面板新增“变更文件”标签页，可在目标分支/当前分支间切换；点击文件打开相对共同祖先的左右对比，不会把对方分支的改动显示成反向修改
+- **Consistent entry points** — Both the branch context menu and the branch sidebar's compare button now use the new comparison, replacing the old placeholder implementation / 入口统一：分支右键菜单与侧边栏“与当前分支比较”按钮都走新比较模式，替换原来的空实现
+
+### Fixed / 修复
+- **Chinese and spaced file paths in file lists** — Git name-status output is now parsed as NUL-separated records, so filenames containing Chinese characters or spaces no longer appear as quoted/escaped paths in commit files or comparison lists / 中文/空格文件名：文件列表改用 NUL 分隔解析 git 输出，提交文件与比较文件不再出现被引号转义的乱码路径
+- **Long branch names squeezed out commit subjects** — Ref badges are width-capped and ellipsized, and narrow comparison panes progressively hide author/date columns so subjects and branch refs stay readable / 长分支名不再挤掉提交标题：分支徽标限制宽度并省略，窄分屏自动隐藏作者/日期列，优先保留标题与分支
+- **Comparison banner clipped counts on narrow panels** — The banner wraps instead of clipping, ahead/behind stays visible, details tabs ellipsize, and pane headers use an opaque background / 窄面板下比较横幅不再裁掉计数：横幅自动换行、领先/落后始终可见，详情标签页改为省略号，分屏表头改为不透明背景
+
 ## [1.0.5] - 2026-11-09
 
 ### Changed / 调整
