@@ -305,6 +305,7 @@ export function activate(context: vscode.ExtensionContext) {
     const filePathParam = params.filePath as string | undefined;
     const fileParam = params.file as string | DiffFile | undefined;
     const baseRef = params.baseRef as string | undefined;
+    const rightLabel = params.rightLabel as string | undefined;
     const cherryPickHashes = params.cherryPickHashes as string[] | undefined;
     const fileList = params.fileList as DiffFile[] | undefined;
     const fileMeta =
@@ -341,6 +342,7 @@ export function activate(context: vscode.ExtensionContext) {
         fileMeta,
         baseRef,
         cherryPickHashes,
+        rightLabel,
       );
     }
     return undefined;
@@ -354,6 +356,7 @@ export function activate(context: vscode.ExtensionContext) {
       maxCount: (params.maxCount as number) ?? 200,
       skip: params.skip as number | undefined,
       branch: params.branch as string | undefined,
+      range: params.range as string | undefined,
       search: params.search as string | undefined,
       author: params.author as string | undefined,
       file: params.file as string | undefined,
@@ -380,8 +383,10 @@ export function activate(context: vscode.ExtensionContext) {
       maxCount: (params.count as number) ?? 200,
       skip: (params.skip as number) ?? 0,
       branch: params.branch as string | undefined,
+      range: params.range as string | undefined,
       search: params.search as string | undefined,
       author: params.author as string | undefined,
+      file: params.file as string | undefined,
     };
     const snapshot = params.snapshot as LaneSnapshot | undefined;
     const result = await gitService.getGraphTopology(options, snapshot);
@@ -1591,19 +1596,22 @@ export function activate(context: vscode.ExtensionContext) {
     });
   });
 
-  messageRouter.handle("compareWithCurrent", async (params) => {
+  messageRouter.handle("compareBranches", async (params) => {
     if (!gitService) return NOT_GIT_REPO;
-    const branchName = params.branchName as string;
-    if (!branchName) return { success: false };
-    // Use VS Code's built-in git diff between current branch and selected
-    const currentBranch = await gitService.getCurrentBranch();
-    void vscode.commands.executeCommand(
-      "vscode.diff",
-      vscode.Uri.parse(`${GIT_BRAINS_SCHEME}:/${currentBranch}`),
-      vscode.Uri.parse(`${GIT_BRAINS_SCHEME}:/${branchName}`),
-      `${currentBranch} ↔ ${branchName}`,
-    );
-    return { success: true };
+    const baseBranch = params.baseBranch as string;
+    const targetBranch = params.targetBranch as string;
+    if (!baseBranch || !targetBranch) {
+      return { mergeBase: null, ahead: 0, behind: 0 };
+    }
+    return gitService.compareBranches(baseBranch, targetBranch);
+  });
+
+  messageRouter.handle("getCompareFiles", async (params) => {
+    if (!gitService) return [];
+    const baseRef = params.baseRef as string;
+    const headRef = params.headRef as string;
+    if (!baseRef || !headRef) return [];
+    return gitService.getCompareFiles(baseRef, headRef);
   });
 
   messageRouter.handle("showMyBranches", async () => {

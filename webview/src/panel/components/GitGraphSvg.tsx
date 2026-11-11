@@ -220,16 +220,35 @@ export function GitGraphSvg({
   scrollLeft = 0,
   height,
   topOffset = 0,
+  commits: commitsProp,
+  visibleCommits: visibleCommitsProp,
+  graphLayout: graphLayoutProp,
+  collapsedSequenceIds: collapsedProp,
+  onToggleSequence,
 }: {
   scrollTop: number;
   scrollLeft?: number;
   height: number;
   topOffset?: number;
+  /** Optional data overrides; the panel uses the store by default. */
+  commits?: Commit[];
+  visibleCommits?: Commit[];
+  graphLayout?: Record<string, LaneInfo>;
+  collapsedSequenceIds?: Set<string>;
+  /** Omit to render the graph as a non-interactive overlay. */
+  onToggleSequence?: (sequenceId: string, intermediates: string[]) => void;
 }) {
-  const visibleCommits = usePanelStore((s) => s.visibleCommits);
-  const commits = usePanelStore((s) => s.commits);
-  const graphLayout = usePanelStore((s) => s.graphLayout);
-  const collapsedSequenceIds = usePanelStore((s) => s.collapsedSequenceIds);
+  const storeVisibleCommits = usePanelStore((s) => s.visibleCommits);
+  const storeCommits = usePanelStore((s) => s.commits);
+  const storeGraphLayout = usePanelStore((s) => s.graphLayout);
+  const storeCollapsedSequenceIds = usePanelStore(
+    (s) => s.collapsedSequenceIds,
+  );
+
+  const visibleCommits = visibleCommitsProp ?? storeVisibleCommits;
+  const commits = commitsProp ?? storeCommits;
+  const graphLayout = graphLayoutProp ?? storeGraphLayout;
+  const collapsedSequenceIds = collapsedProp ?? storeCollapsedSequenceIds;
 
   const [hoveredSequenceId, setHoveredSequenceId] = useState<string | null>(
     null,
@@ -457,7 +476,7 @@ export function GitGraphSvg({
     >
       <g transform={`translate(0, ${-scrollTop})`}>
         {visibleLines.map((line) => {
-          const hasSeq = !!line.sequenceId;
+          const hasSeq = !!line.sequenceId && !!onToggleSequence;
           const isSeqHovered = hasSeq && line.sequenceId === hoveredSequenceId;
           const isSeqCollapsed =
             hasSeq && collapsedSequenceIds.has(line.sequenceId as string);
@@ -484,13 +503,10 @@ export function GitGraphSvg({
                 if (hasSeq) setHoveredSequenceId(null);
               }}
               onClick={() => {
-                if (line.sequenceId) {
-                  const seq = sequencesById[line.sequenceId];
-                  if (seq) {
-                    usePanelStore
-                      .getState()
-                      .toggleSequenceCollapse(seq.id, seq.intermediates);
-                  }
+                if (!line.sequenceId || !onToggleSequence) return;
+                const seq = sequencesById[line.sequenceId];
+                if (seq) {
+                  onToggleSequence(seq.id, seq.intermediates);
                 }
               }}
             >

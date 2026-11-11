@@ -1399,6 +1399,11 @@ function BranchContextMenu({
     }
   };
 
+  const handleCompare = () => {
+    onClose();
+    void usePanelStore.getState().enterCompare(branch.name);
+  };
+
   const items: {
     label: string;
     action: () => void;
@@ -1414,6 +1419,10 @@ function BranchContextMenu({
     action: handleNewBranch,
   });
   if (!isCurrent) {
+    items.push({
+      label: t("Compare Changes"),
+      action: handleCompare,
+    });
     items.push({
       label: t("Checkout and Rebase onto '{branch}'", {
         branch: currentBranch,

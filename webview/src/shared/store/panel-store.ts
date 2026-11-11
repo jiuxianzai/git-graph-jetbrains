@@ -1,7 +1,14 @@
 import { create } from "zustand";
+import {
+  branchForSide,
+  type CompareFilesSide,
+  commitsRangeForSide,
+  compareBaseRef,
+} from "../../panel/utils/compare";
 import { bridge } from "../bridge";
 import type { SelectionMode } from "../hooks/useModifierClickSelection";
 import type {
+  BranchComparison,
   BranchInfo,
   Commit,
   DiffFile,
@@ -16,6 +23,38 @@ interface PanelFilter {
   author: string;
   dateRange: string;
   file: string;
+}
+
+export interface CompareState {
+  baseBranch: string;
+  targetBranch: string;
+  mergeBase: string | null;
+  /** Commits only reachable from the target branch. */
+  ahead: number;
+  /** Commits only reachable from the base branch. */
+  behind: number;
+  /** Commits only reachable from the base (current) branch. */
+  baseCommits: Commit[];
+  baseGraph: Record<string, LaneInfo>;
+  /** Commits only reachable from the target branch. */
+  targetCommits: Commit[];
+  targetGraph: Record<string, LaneInfo>;
+  loading: boolean;
+  filesTarget: DiffFile[];
+  filesBase: DiffFile[];
+  /** Which side the details pane's file list shows. */
+  filesSide: CompareFilesSide;
+  filesLoading: boolean;
+}
+
+export type DetailTab = "commit" | "compare";
+
+/** Per-side cap for comparison commit lists (matches git log page sizes). */
+const COMPARE_COMMIT_LIMIT = 1000;
+
+interface GraphPayload {
+  graphData: { commits: Commit[]; lanes: Record<string, LaneInfo> };
+  snapshot: LaneSnapshot;
 }
 
 interface PanelStore {
@@ -44,6 +83,12 @@ interface PanelStore {
   branchGroupByDirectory: boolean;
 
   filter: PanelFilter;
+  /** Active branch comparison, null when browsing the normal log. */
+  compare: CompareState | null;
+  /** Filter that was active before entering comparison mode. */
+  filterBeforeCompare: PanelFilter | null;
+  /** Which tab the details pane shows while a comparison is active. */
+  detailTab: DetailTab;
   /** Hashes to restore after clearing a filter */
   pendingSelectionFromFilter: string[];
   /** Collapsed sequence IDs */
@@ -76,6 +121,14 @@ interface PanelStore {
   toggleColumnVisibility: (column: "author" | "date" | "hash") => void;
   toggleSequenceCollapse: (sequenceId: string, intermediates: string[]) => void;
   toggleBranchGroupByDirectory: () => void;
+  enterCompare: (targetBranch: string) => Promise<void>;
+  exitCompare: () => Promise<void>;
+  setDetailTab: (tab: DetailTab) => void;
+  setCompareFilesSide: (side: CompareFilesSide) => void;
+  loadCompareCommits: () => Promise<void>;
+  loadCompareFiles: () => Promise<void>;
+  openCompareFile: (file: DiffFile) => Promise<void>;
+  refreshCompare: () => Promise<void>;
   refresh: () => Promise<void>;
 }
 
@@ -219,6 +272,9 @@ export const usePanelStore = create<PanelStore>((set, get) => ({
   })(),
 
   filter: { searchQuery: "", branch: "", author: "", dateRange: "", file: "" },
+  compare: null,
+  filterBeforeCompare: null,
+  detailTab: "commit",
   pendingSelectionFromFilter: [],
   collapsedSequenceIds: new Set(),
   collapsedIntermediates: new Map(),
@@ -342,6 +398,7 @@ export const usePanelStore = create<PanelStore>((set, get) => ({
         count: 200,
         snapshot: laneSnapshot,
         branch: filter.branch || undefined,
+        file: filter.file || undefined,
       })) as {
         graphData: { commits: Commit[]; lanes: Record<string, LaneInfo> };
         snapshot: LaneSnapshot;
@@ -431,6 +488,9 @@ export const usePanelStore = create<PanelStore>((set, get) => ({
       selectedFilePath: null,
       rangeOldest: orderedHashes[orderedHashes.length - 1],
       rangeNewest: orderedHashes[0],
+      // Selecting a commit in comparison mode shows its details; the compare
+      // tab stays one click away.
+      ...(get().compare ? { detailTab: "commit" as const } : {}),
     });
     try {
       const files = (await bridge.request("getCommitRangeFiles", {
@@ -484,6 +544,11 @@ export const usePanelStore = create<PanelStore>((set, get) => ({
     ) {
       set({
         filter: next,
+        // Changing the branch/file scope leaves comparison mode; the two
+        // filters would otherwise fight over what the log query means.
+        ...(get().compare
+          ? { compare: null, detailTab: "commit" as const }
+          : {}),
         pendingSelectionFromFilter: [],
         collapsedSequenceIds: new Set(),
         collapsedIntermediates: new Map(),
@@ -635,8 +700,288 @@ export const usePanelStore = create<PanelStore>((set, get) => ({
     }
   },
 
+  async enterCompare(targetBranch: string) {
+    const baseBranch = get().currentBranch || "HEAD";
+    if (!targetBranch || targetBranch === baseBranch) return;
+
+    try {
+      const result = (await bridge.request("compareBranches", {
+        baseBranch,
+        targetBranch,
+      })) as BranchComparison | null;
+
+      set({
+        compare: {
+          baseBranch,
+          targetBranch,
+          mergeBase: result?.mergeBase ?? null,
+          ahead: result?.ahead ?? 0,
+          behind: result?.behind ?? 0,
+          baseCommits: [],
+          baseGraph: {},
+          targetCommits: [],
+          targetGraph: {},
+          loading: true,
+          filesTarget: [],
+          filesBase: [],
+          filesSide: "target",
+          filesLoading: true,
+        },
+        detailTab: "compare",
+        filterBeforeCompare: get().filter,
+        // Highlight the branch being compared in the tree.
+        selectedBranches: [targetBranch],
+        lastSelectedBranch: targetBranch,
+        // The comparison view owns the middle area; normal filters don't apply.
+        filter: {
+          searchQuery: "",
+          branch: "",
+          author: "",
+          dateRange: "",
+          file: "",
+        },
+        pendingSelectionFromFilter: [],
+        collapsedSequenceIds: new Set(),
+        collapsedIntermediates: new Map(),
+        selectedCommitHash: null,
+        selectedCommitHashes: [],
+        lastSelectedCommitHash: null,
+        commitFiles: [],
+        selectedFilePath: null,
+        rangeOldest: null,
+        rangeNewest: null,
+      });
+      await Promise.all([get().loadCompareCommits(), get().loadCompareFiles()]);
+    } catch (err) {
+      console.error("enterCompare failed:", err);
+      set({ compare: null, detailTab: "commit" });
+      void bridge.request("showErrorNotification", {
+        message: err instanceof Error ? err.message : String(err),
+      });
+    }
+  },
+
+  async exitCompare() {
+    const previousFilter = get().filterBeforeCompare;
+    set({
+      compare: null,
+      filterBeforeCompare: null,
+      detailTab: "commit",
+      selectedCommitHashes: [],
+      selectedCommitHash: null,
+      lastSelectedCommitHash: null,
+      commitFiles: [],
+      ...(previousFilter ? { filter: previousFilter } : {}),
+    });
+    await get().fetchInitialData();
+  },
+
+  setDetailTab(tab: DetailTab) {
+    set({ detailTab: tab });
+  },
+
+  setCompareFilesSide(side: CompareFilesSide) {
+    const compare = get().compare;
+    if (!compare || compare.filesSide === side) return;
+    set({ compare: { ...compare, filesSide: side } });
+  },
+
+  async loadCompareCommits() {
+    const compare = get().compare;
+    if (!compare) return;
+
+    set({ compare: { ...compare, loading: true } });
+    try {
+      const [baseResult, targetResult] = (await Promise.all([
+        bridge.request("getGraphData", {
+          maxCount: COMPARE_COMMIT_LIMIT,
+          range: commitsRangeForSide(
+            compare.baseBranch,
+            compare.targetBranch,
+            "base",
+          ),
+        }),
+        bridge.request("getGraphData", {
+          maxCount: COMPARE_COMMIT_LIMIT,
+          range: commitsRangeForSide(
+            compare.baseBranch,
+            compare.targetBranch,
+            "target",
+          ),
+        }),
+      ])) as [GraphPayload | null, GraphPayload | null];
+
+      const current = get().compare;
+      if (
+        !current ||
+        current.baseBranch !== compare.baseBranch ||
+        current.targetBranch !== compare.targetBranch
+      ) {
+        return;
+      }
+
+      const baseCommits = baseResult?.graphData?.commits ?? [];
+      const targetCommits = targetResult?.graphData?.commits ?? [];
+
+      // The details pane looks commits up by hash, so keep a merged list there.
+      const union: Commit[] = [];
+      const seen = new Set<string>();
+      for (const commit of [...targetCommits, ...baseCommits]) {
+        if (seen.has(commit.hash)) continue;
+        seen.add(commit.hash);
+        union.push(commit);
+      }
+      const selected = get().selectedCommitHashes.filter((hash) =>
+        seen.has(hash),
+      );
+
+      set({
+        compare: {
+          ...current,
+          baseCommits,
+          baseGraph: baseResult?.graphData?.lanes ?? {},
+          targetCommits,
+          targetGraph: targetResult?.graphData?.lanes ?? {},
+          loading: false,
+        },
+        commits: union,
+        visibleCommits: union,
+        graphLayout: {},
+        hasMore: false,
+        selectedCommitHashes: selected,
+        selectedCommitHash: selected[0] ?? null,
+        lastSelectedCommitHash: selected[0] ?? null,
+        rangeOldest: selected.length ? selected[selected.length - 1] : null,
+        rangeNewest: selected[0] ?? null,
+      });
+    } catch (err) {
+      console.error("loadCompareCommits failed:", err);
+      const current = get().compare;
+      if (current) {
+        set({
+          compare: {
+            ...current,
+            baseCommits: [],
+            baseGraph: {},
+            targetCommits: [],
+            targetGraph: {},
+            loading: false,
+          },
+        });
+      }
+    }
+  },
+
+  async loadCompareFiles() {
+    const compare = get().compare;
+    if (!compare) return;
+
+    set({ compare: { ...compare, filesLoading: true } });
+    try {
+      const [filesTarget, filesBase] = (await Promise.all([
+        bridge.request("getCompareFiles", {
+          baseRef: compareBaseRef(compare, "target"),
+          headRef: branchForSide(compare, "target"),
+        }),
+        bridge.request("getCompareFiles", {
+          baseRef: compareBaseRef(compare, "base"),
+          headRef: branchForSide(compare, "base"),
+        }),
+      ])) as [DiffFile[] | null, DiffFile[] | null];
+
+      const current = get().compare;
+      if (
+        !current ||
+        current.baseBranch !== compare.baseBranch ||
+        current.targetBranch !== compare.targetBranch
+      ) {
+        return;
+      }
+      set({
+        compare: {
+          ...current,
+          filesTarget: filesTarget ?? [],
+          filesBase: filesBase ?? [],
+          filesLoading: false,
+        },
+      });
+    } catch (err) {
+      console.error("loadCompareFiles failed:", err);
+      const current = get().compare;
+      if (current) {
+        set({
+          compare: {
+            ...current,
+            filesTarget: [],
+            filesBase: [],
+            filesLoading: false,
+          },
+        });
+      }
+    }
+  },
+
+  async openCompareFile(file: DiffFile) {
+    const compare = get().compare;
+    if (!compare) return;
+
+    const side = compare.filesSide;
+    const headRef = branchForSide(compare, side);
+    const baseRef = compareBaseRef(compare, side);
+    const fileList =
+      side === "target" ? compare.filesTarget : compare.filesBase;
+    try {
+      await bridge.request("openDiffEditor", {
+        commit: headRef,
+        filePath: file.newPath || file.oldPath,
+        file,
+        baseRef,
+        rightLabel: headRef,
+        fileList,
+      });
+    } catch (err) {
+      console.error("openCompareFile failed:", err);
+    }
+  },
+
+  async refreshCompare() {
+    const compare = get().compare;
+    if (!compare) return;
+
+    try {
+      const result = (await bridge.request("compareBranches", {
+        baseBranch: compare.baseBranch,
+        targetBranch: compare.targetBranch,
+      })) as BranchComparison | null;
+      const current = get().compare;
+      if (!current) return;
+
+      set({
+        compare: {
+          ...current,
+          mergeBase: result?.mergeBase ?? current.mergeBase,
+          ahead: result?.ahead ?? 0,
+          behind: result?.behind ?? 0,
+        },
+      });
+      await Promise.all([get().loadCompareCommits(), get().loadCompareFiles()]);
+    } catch (err) {
+      console.error("refreshCompare failed:", err);
+      // The compared branch is gone (deleted/renamed); fall back to the log.
+      set({
+        compare: null,
+        filterBeforeCompare: null,
+        detailTab: "commit",
+      });
+    }
+  },
+
   async refresh() {
     set({ collapsedSequenceIds: new Set(), collapsedIntermediates: new Map() });
+    if (get().compare) {
+      await get().refreshCompare();
+      return;
+    }
     await get().fetchInitialData();
   },
 }));

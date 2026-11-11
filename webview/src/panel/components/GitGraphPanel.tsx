@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { usePanelStore } from "../../shared/store/panel-store";
 import { CommitList } from "./CommitList";
 import { GitGraphSvg } from "./GitGraphSvg";
 
@@ -42,6 +43,9 @@ export function GitGraphPanel() {
         scrollLeft={scrollLeft}
         height={svgHeight > 0 ? svgHeight : 0}
         topOffset={0}
+        onToggleSequence={(id, intermediates) =>
+          usePanelStore.getState().toggleSequenceCollapse(id, intermediates)
+        }
       />
     </div>
   );

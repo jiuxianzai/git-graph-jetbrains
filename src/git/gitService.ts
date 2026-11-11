@@ -7,6 +7,7 @@ import { t } from "../i18n";
 import { GitCache } from "./cache";
 import { computeGraphLayout } from "./graphLayout";
 import type {
+  BranchComparison,
   BranchInfo,
   CherryPickState,
   CommitNode,
@@ -108,7 +109,11 @@ export class GitService {
     if (options.until) {
       args.push(`--until=${options.until}`);
     }
-    if (options.branch) {
+    if (options.range) {
+      // A revision range can only be used on its own; combining it with
+      // --all or a branch would silently include the whole repository.
+      args.push(options.range);
+    } else if (options.branch) {
       args.push(options.branch);
     } else {
       args.push("--all");
@@ -128,7 +133,9 @@ export class GitService {
     prevSnapshot?: LaneSnapshot,
   ): Promise<GraphLayoutResult> {
     const commits = await this.getLog(options);
-    const breakHiddenParents = !!options.search;
+    // Range and search filters both drop commits from the window, so parent
+    // links pointing outside of it must be rendered as stubs instead of lanes.
+    const breakHiddenParents = !!(options.search || options.range);
     return computeGraphLayout(commits, prevSnapshot, breakHiddenParents);
   }
 
@@ -346,15 +353,18 @@ export class GitService {
 
   async getCommitFiles(hash: string): Promise<DiffFile[]> {
     const output = await this.execGit([
+      "-c",
+      "core.quotePath=false",
       "diff-tree",
       "--root",
       "--no-commit-id",
       "-r",
       "--name-status",
       "-M",
+      "-z",
       hash,
     ]);
-    return parseDiffNameStatus(output);
+    return parseDiffNameStatusZ(output);
   }
 
   async getCommitRangeFiles(hashes: string[]): Promise<DiffFile[]> {
@@ -376,6 +386,74 @@ export class GitService {
       }
     }
     return Array.from(merged.values());
+  }
+
+  /**
+   * Compare two branches in both directions at once.
+   * `ahead` counts commits only reachable from `targetBranch`,
+   * `behind` counts commits only reachable from `baseBranch`.
+   */
+  async compareBranches(
+    baseBranch: string,
+    targetBranch: string,
+  ): Promise<BranchComparison> {
+    // Fail loudly for missing refs so the caller can show an error instead of
+    // rendering an empty comparison; unrelated histories are handled below.
+    await this.execGit(["rev-parse", "--verify", "--quiet", baseBranch]);
+    await this.execGit(["rev-parse", "--verify", "--quiet", targetBranch]);
+
+    const mergeBase = await this.execGit([
+      "merge-base",
+      baseBranch,
+      targetBranch,
+    ])
+      .then((out) => out.trim() || null)
+      .catch(() => null);
+
+    let ahead = 0;
+    let behind = 0;
+    if (mergeBase) {
+      const counts = await this.execGit([
+        "rev-list",
+        "--left-right",
+        "--count",
+        `${baseBranch}...${targetBranch}`,
+      ]);
+      const [left, right] = counts.trim().split(/\s+/);
+      behind = Number.parseInt(left ?? "0", 10) || 0;
+      ahead = Number.parseInt(right ?? "0", 10) || 0;
+    } else {
+      // Unrelated histories: `A..B` falls back to "everything in B", so the
+      // counts must match the ranges the log will actually show.
+      const countOf = async (ref: string) => {
+        const out = await this.execGit(["rev-list", "--count", ref]);
+        return Number.parseInt(out.trim(), 10) || 0;
+      };
+      [ahead, behind] = await Promise.all([
+        countOf(targetBranch),
+        countOf(baseBranch),
+      ]);
+    }
+
+    return { mergeBase, ahead, behind };
+  }
+
+  /**
+   * Changed files between two revisions. Callers pass the merge base as
+   * `baseRef` to get the three-dot ("changes introduced on the branch") view.
+   */
+  async getCompareFiles(baseRef: string, headRef: string): Promise<DiffFile[]> {
+    const output = await this.execGit([
+      "-c",
+      "core.quotePath=false",
+      "diff",
+      "--name-status",
+      "-M",
+      "-z",
+      baseRef,
+      headRef,
+    ]);
+    return parseDiffNameStatusZ(output);
   }
 
   async findFileRange(
@@ -1641,30 +1719,38 @@ export class GitService {
   }
 }
 
-function parseDiffNameStatus(output: string): DiffFile[] {
+/**
+ * Parse `git diff --name-status -z` / `git diff-tree --name-status -z`.
+ * Records are NUL-terminated, so paths with spaces/Unicode/newlines survive
+ * without git's C-style quoting.
+ */
+function parseDiffNameStatusZ(output: string): DiffFile[] {
+  const parts = output.split("\0");
   const files: DiffFile[] = [];
-  for (const line of output.trim().split("\n")) {
-    if (!line.trim()) {
+  let i = 0;
+
+  while (i < parts.length) {
+    const code = parts[i++];
+    if (!code) {
       continue;
     }
-    const parts = line.split("\t");
-    const statusCode = parts[0]?.trim() ?? "";
+    const isRenameOrCopy = code.startsWith("R") || code.startsWith("C");
 
-    if (statusCode.startsWith("R") || statusCode.startsWith("C")) {
-      const oldPath = parts[1] ?? "";
-      const newPath = parts[2] ?? "";
+    if (isRenameOrCopy) {
+      const oldPath = parts[i++] ?? "";
+      const newPath = parts[i++] ?? "";
       files.push({
         oldPath,
         newPath,
-        status: statusCode.startsWith("R") ? "renamed" : "copied",
+        status: code.startsWith("R") ? "renamed" : "copied",
         isBinary: false,
       });
     } else {
-      const filePath = parts[1] ?? "";
+      const filePath = parts[i++] ?? "";
       let status: DiffFile["status"] = "modified";
-      if (statusCode === "A") {
+      if (code.startsWith("A")) {
         status = "added";
-      } else if (statusCode === "D") {
+      } else if (code.startsWith("D")) {
         status = "deleted";
       }
       files.push({

@@ -57,6 +57,15 @@ export interface BranchInfo {
   lastCommitHash: string;
 }
 
+/** Both directions of a branch comparison, returned by `compareBranches`. */
+export interface BranchComparison {
+  mergeBase: string | null;
+  /** Commits reachable from the target branch only. */
+  ahead: number;
+  /** Commits reachable from the base branch only. */
+  behind: number;
+}
+
 export interface TagInfo {
   name: string;
   hash: string;
@@ -75,6 +84,8 @@ export interface LogOptions {
   maxCount?: number;
   skip?: number;
   branch?: string;
+  /** Git revision range; takes precedence over `branch`. */
+  range?: string;
   author?: string;
   search?: string;
   file?: string;

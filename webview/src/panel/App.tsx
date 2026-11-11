@@ -7,6 +7,8 @@ import { usePreventSelect } from "../shared/hooks/usePreventSelect";
 import { t } from "../shared/i18n";
 import { usePanelStore } from "../shared/store/panel-store";
 import { BranchTree } from "./components/BranchTree";
+import { CompareBanner } from "./components/CompareBanner";
+import { CompareSplit } from "./components/CompareSplit";
 import { DetailPanel } from "./components/DetailPanel";
 import { GitGraphPanel } from "./components/GitGraphPanel";
 import { Toolbar } from "./components/Toolbar";
@@ -117,6 +119,7 @@ export function PanelApp() {
   const operationInProgress = usePanelStore((s) => s.operationInProgress);
   const operationLabel = usePanelStore((s) => s.operationLabel);
   const fetchInitialData = usePanelStore((s) => s.fetchInitialData);
+  const compare = usePanelStore((s) => s.compare);
 
   const [showLeft, setShowLeft] = useState(true);
   const [showRight, setShowRight] = useState(true);
@@ -215,6 +218,13 @@ export function PanelApp() {
   );
 
   const middleRef = usePreventSelect();
+
+  // Other panels (e.g. the comparison banner) can ask for the details pane.
+  useEffect(() => {
+    const show = () => setShowRight(true);
+    window.addEventListener("panel-show-details", show);
+    return () => window.removeEventListener("panel-show-details", show);
+  }, []);
 
   useEffect(() => {
     fetchInitialData();
@@ -349,8 +359,9 @@ export function PanelApp() {
                   height: "100%",
                 }}
               >
-                <Toolbar />
-                <GitGraphPanel />
+                {!compare && <Toolbar />}
+                <CompareBanner />
+                {compare ? <CompareSplit /> : <GitGraphPanel />}
               </div>
             </Allotment.Pane>
             <Allotment.Pane

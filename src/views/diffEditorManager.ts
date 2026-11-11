@@ -88,6 +88,7 @@ export class DiffEditorManager {
     fileMeta?: DiffFile,
     baseRef?: string,
     cherryPickHashes?: string[],
+    rightLabel?: string,
   ): Promise<void> {
     const status = fileMeta?.status ?? "modified";
     const oldPath = fileMeta?.oldPath ?? filePath;
@@ -127,12 +128,12 @@ export class DiffEditorManager {
           `${GIT_BRAINS_SCHEME}:/${newPath}?ref=empty`,
         );
         rightUri = vscode.Uri.parse(
-          `${GIT_BRAINS_SCHEME}:/${newPath}?ref=${rightRef}`,
+          `${GIT_BRAINS_SCHEME}:/${newPath}?ref=${encodeRef(rightRef)}`,
         );
         break;
       case "deleted":
         leftUri = vscode.Uri.parse(
-          `${GIT_BRAINS_SCHEME}:/${oldPath}?ref=${leftRef}`,
+          `${GIT_BRAINS_SCHEME}:/${oldPath}?ref=${encodeRef(leftRef)}`,
         );
         rightUri = vscode.Uri.parse(
           `${GIT_BRAINS_SCHEME}:/${oldPath}?ref=empty`,
@@ -141,18 +142,18 @@ export class DiffEditorManager {
       case "renamed":
       case "copied":
         leftUri = vscode.Uri.parse(
-          `${GIT_BRAINS_SCHEME}:/${oldPath}?ref=${leftRef}`,
+          `${GIT_BRAINS_SCHEME}:/${oldPath}?ref=${encodeRef(leftRef)}`,
         );
         rightUri = vscode.Uri.parse(
-          `${GIT_BRAINS_SCHEME}:/${newPath}?ref=${rightRef}`,
+          `${GIT_BRAINS_SCHEME}:/${newPath}?ref=${encodeRef(rightRef)}`,
         );
         break;
       default: // modified
         leftUri = vscode.Uri.parse(
-          `${GIT_BRAINS_SCHEME}:/${newPath}?ref=${leftRef}`,
+          `${GIT_BRAINS_SCHEME}:/${newPath}?ref=${encodeRef(leftRef)}`,
         );
         rightUri = vscode.Uri.parse(
-          `${GIT_BRAINS_SCHEME}:/${newPath}?ref=${rightRef}`,
+          `${GIT_BRAINS_SCHEME}:/${newPath}?ref=${encodeRef(rightRef)}`,
         );
         break;
     }
@@ -163,9 +164,11 @@ export class DiffEditorManager {
     const title =
       cherryPickHashes && cherryPickHashes.length > 1
         ? `${fileName} (${cherryPickHashes.length} commits)`
-        : baseRef
-          ? `${fileName} (${baseRef.substring(0, 7)}..${shortHash})`
-          : `${fileName} (${shortHash})`;
+        : rightLabel
+          ? `${fileName} (${shortRef(baseRef ?? "") || "∅"} ↔ ${rightLabel})`
+          : baseRef
+            ? `${fileName} (${shortRef(baseRef)}..${shortHash})`
+            : `${fileName} (${shortHash})`;
 
     await vscode.commands.executeCommand(
       "vscode.diff",
@@ -174,4 +177,14 @@ export class DiffEditorManager {
       title,
     );
   }
+}
+
+/** Shorten full commit hashes for diff titles; keep branch/ref names intact. */
+function shortRef(ref: string): string {
+  return /^[0-9a-f]{40}$/i.test(ref) ? ref.substring(0, 7) : ref;
+}
+
+/** Branch names may contain '/', '#' or '%'; keep them inside the query value. */
+function encodeRef(ref: string): string {
+  return encodeURIComponent(ref);
 }

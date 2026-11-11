@@ -224,7 +224,7 @@ export function CommitRow({
       >
         <span
           style={{
-            flexShrink: 1,
+            flex: "1 1 auto",
             minWidth: 0,
             overflow: "hidden",
           }}
@@ -247,8 +247,10 @@ export function CommitRow({
             style={{
               display: "inline-flex",
               alignItems: "center",
-              flexShrink: 0,
+              flexShrink: 1,
               minWidth: 0,
+              maxWidth: "45%",
+              overflow: "hidden",
               marginLeft: 8,
               paddingLeft: 8,
             }}
@@ -260,6 +262,7 @@ export function CommitRow({
                   alignItems: "center",
                   gap: 4,
                   minWidth: 0,
+                  maxWidth: "100%",
                   overflow: "hidden",
                 }}
               >
@@ -293,6 +296,9 @@ export function CommitRow({
                     fontSize: "0.8em",
                     whiteSpace: "nowrap",
                     opacity: 0.85,
+                    minWidth: 0,
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
                   }}
                 >
                   {refLabel}

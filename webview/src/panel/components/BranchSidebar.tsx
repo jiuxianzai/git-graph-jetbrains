@@ -42,7 +42,7 @@ export function BranchSidebar({
 
   const handleCompareWithCurrent = useCallback(() => {
     if (selectedBranch) {
-      bridge.request("compareWithCurrent", { branchName: selectedBranch });
+      void usePanelStore.getState().enterCompare(selectedBranch);
     }
   }, [selectedBranch]);
 

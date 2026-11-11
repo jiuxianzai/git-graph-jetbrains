@@ -84,11 +84,23 @@ export interface LogOptions {
   maxCount?: number; // default 200
   skip?: number;
   branch?: string; // specific branch, default --all
+  /** Git revision range (e.g. "main..feature"). Takes precedence over `branch`. */
+  range?: string;
   author?: string;
   search?: string; // --grep
   file?: string;
   since?: string;
   until?: string;
+}
+
+/** Result of comparing two branches (both directions at once). */
+export interface BranchComparison {
+  /** Common ancestor, null when the histories are unrelated. */
+  mergeBase: string | null;
+  /** Commits reachable from the target branch but not from the base branch. */
+  ahead: number;
+  /** Commits reachable from the base branch but not from the target branch. */
+  behind: number;
 }
 
 export interface MergeState {
