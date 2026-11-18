@@ -206,7 +206,7 @@ export function RollbackApp() {
         <div className="rollback-actions">
           <button
             type="button"
-            className="rollback-btn rollback-btn-secondary"
+            className="dialog-btn dialog-btn-secondary"
             onClick={handleCancel}
             disabled={rolling}
           >
@@ -214,7 +214,7 @@ export function RollbackApp() {
           </button>
           <button
             type="button"
-            className="rollback-btn rollback-btn-primary"
+            className="dialog-btn dialog-btn-primary"
             onClick={handleRollback}
             disabled={rolling || checkedFiles.size === 0}
           >

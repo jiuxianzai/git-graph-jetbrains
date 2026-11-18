@@ -44,21 +44,21 @@ function PushRejectedDialog({
         <div className="push-rejected-actions">
           <button
             type="button"
-            className="push-btn push-btn-secondary"
+            className="dialog-btn dialog-btn-secondary"
             onClick={onCancel}
           >
             {t("Cancel")}
           </button>
           <button
             type="button"
-            className="push-btn push-btn-rebase"
+            className="dialog-btn dialog-btn-primary"
             onClick={onRebase}
           >
             {t("Rebase")}
           </button>
           <button
             type="button"
-            className="push-btn push-btn-merge"
+            className="dialog-btn dialog-btn-secondary"
             onClick={onMerge}
           >
             {t("Merge")}
@@ -499,7 +499,7 @@ export function PushApp() {
         <span style={{ flex: 1 }} />
         <button
           type="button"
-          className="push-btn push-btn-secondary"
+          className="dialog-btn dialog-btn-secondary"
           onClick={() => bridge.request("closePushPanel")}
           disabled={pushing}
         >
@@ -508,7 +508,7 @@ export function PushApp() {
         <div className="push-split-btn">
           <button
             type="button"
-            className="push-btn push-btn-primary push-split-main"
+            className="dialog-btn dialog-btn-primary push-split-main"
             onClick={() => handlePush(false)}
             disabled={pushing || commits.length === 0}
           >
@@ -516,7 +516,7 @@ export function PushApp() {
           </button>
           <button
             type="button"
-            className="push-btn push-btn-primary push-split-arrow"
+            className="dialog-btn dialog-btn-primary push-split-arrow"
             onClick={() => setShowPushMenu(!showPushMenu)}
             disabled={pushing || commits.length === 0}
           >

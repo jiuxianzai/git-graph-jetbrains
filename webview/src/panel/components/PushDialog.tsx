@@ -139,7 +139,7 @@ export function PushDialog({ branchName, onClose, onPush }: PushDialogProps) {
         >
           <button
             type="button"
-            className="push-dialog-btn push-dialog-danger"
+            className="dialog-btn dialog-btn-danger"
             onClick={() => handlePush(true)}
             disabled={pushing}
             style={{ fontWeight: 500 }}
@@ -149,7 +149,7 @@ export function PushDialog({ branchName, onClose, onPush }: PushDialogProps) {
           <div style={{ flex: 1 }} />
           <button
             type="button"
-            className="push-dialog-btn push-dialog-secondary"
+            className="dialog-btn dialog-btn-secondary"
             onClick={onClose}
             disabled={pushing}
           >
@@ -157,7 +157,7 @@ export function PushDialog({ branchName, onClose, onPush }: PushDialogProps) {
           </button>
           <button
             type="button"
-            className="push-dialog-btn push-dialog-primary"
+            className="dialog-btn dialog-btn-primary"
             onClick={() => handlePush(false)}
             disabled={pushing}
           >

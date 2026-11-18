@@ -25,6 +25,18 @@
   --editor-font: var(--vscode-editor-font-family, "Menlo", monospace);
   --editor-font-size: var(--vscode-editor-font-size, 12px);
   --radius: 6px;
+  /* Action-button colours, deliberately NOT derived from --vscode-button-*.
+     Themes are free to paint the secondary button in any accent colour (Dark
+     Magic Midnight uses bright green), which made "Cancel" look like the
+     recommended action. Every dialog / confirmation button uses these. */
+  --action-primary-bg: #3574f0;
+  --action-primary-fg: #ffffff;
+  --action-primary-border: #3574f0;
+  --action-primary-hover-bg: #2f65ca;
+  --action-secondary-fg: var(--app-fg);
+  --action-secondary-border: var(--border);
+  --action-secondary-hover-bg: var(--hover-bg);
+  --action-danger-fg: var(--vscode-errorForeground, #f48771);
 }
 
 * {
@@ -141,45 +153,6 @@ button:disabled {
   stroke-width: 2.2px;
   opacity: 1;
   transition: all 0.1s ease-in-out;
-}
-
-/* ─── Merge Editor Buttons ─────────────────────────────────────── */
-.merge-btn {
-  border-radius: 6px;
-  padding: 6px 16px;
-  font-size: 12px;
-  font-weight: 500;
-  cursor: pointer;
-  height: 28px;
-  box-sizing: border-box;
-  transition:
-    background 0.15s,
-    opacity 0.15s;
-}
-
-.merge-btn:disabled {
-  opacity: 0.4;
-  cursor: default;
-}
-
-.merge-btn-secondary {
-  border: 1px solid var(--border, #555);
-  background: var(--vscode-button-secondaryBackground, #3a3d41);
-  color: var(--vscode-button-secondaryForeground, var(--app-fg));
-}
-
-.merge-btn-secondary:hover:not(:disabled) {
-  background: var(--vscode-button-secondaryHoverBackground, #45494e);
-}
-
-.merge-btn-primary {
-  border: none;
-  background: var(--vscode-button-background, #0e639c);
-  color: var(--vscode-button-foreground, #fff);
-}
-
-.merge-btn-primary:hover:not(:disabled) {
-  background: var(--vscode-button-hoverBackground, #1177bb);
 }
 
 /* ─── Panel Toggle Buttons ─────────────────────────────────────── */
@@ -340,8 +313,10 @@ button.branch-sidebar-btn:disabled {
   flex: 1;
 }
 
-/* Push confirmation dialog buttons: primary action must stand out, cancel must not. */
-.push-dialog-btn {
+/* Dialog / confirmation buttons: the primary action must stand out and the
+   cancel button must stay subdued. Colours come from the fixed --action-* tokens
+   above so the visual hierarchy cannot be flipped by the active theme. */
+.dialog-btn {
   border-radius: 4px;
   padding: 4px 14px;
   font-size: 12px;
@@ -351,31 +326,31 @@ button.branch-sidebar-btn:disabled {
   font-family: var(--font-family);
 }
 
-.push-dialog-primary {
-  background: #3574f0;
-  color: #ffffff;
-  border-color: #3574f0;
+.dialog-btn-primary {
+  background: var(--action-primary-bg);
+  color: var(--action-primary-fg);
+  border-color: var(--action-primary-border);
 }
-.push-dialog-primary:hover {
-  background: #2f65ca;
-  border-color: #2f65ca;
-}
-
-.push-dialog-secondary {
-  background: transparent;
-  color: var(--app-fg);
-  border-color: var(--border);
-}
-.push-dialog-secondary:hover {
-  background: var(--hover-bg);
+.dialog-btn-primary:hover:not(:disabled) {
+  background: var(--action-primary-hover-bg);
+  border-color: var(--action-primary-hover-bg);
 }
 
-.push-dialog-danger {
+.dialog-btn-secondary {
   background: transparent;
-  color: var(--vscode-errorForeground, #f48771);
-  border-color: var(--vscode-errorForeground, #f48771);
+  color: var(--action-secondary-fg);
+  border-color: var(--action-secondary-border);
 }
-.push-dialog-danger:hover {
+.dialog-btn-secondary:hover:not(:disabled) {
+  background: var(--action-secondary-hover-bg);
+}
+
+.dialog-btn-danger {
+  background: transparent;
+  color: var(--action-danger-fg);
+  border-color: var(--action-danger-fg);
+}
+.dialog-btn-danger:hover:not(:disabled) {
   background: rgba(244, 135, 113, 0.12);
 }
 

@@ -252,7 +252,7 @@ export function MergeStandaloneApp() {
               type="button"
               onClick={acceptAllLeft}
               disabled={conflictCount === 0}
-              className="merge-btn merge-btn-secondary"
+              className="dialog-btn dialog-btn-secondary"
             >
               {t("Accept Left")}
             </button>
@@ -265,7 +265,7 @@ export function MergeStandaloneApp() {
               type="button"
               onClick={acceptAllRight}
               disabled={conflictCount === 0}
-              className="merge-btn merge-btn-secondary"
+              className="dialog-btn dialog-btn-secondary"
             >
               {t("Accept Right")}
             </button>
@@ -276,7 +276,7 @@ export function MergeStandaloneApp() {
             <button
               type="button"
               onClick={handleCancel}
-              className="merge-btn merge-btn-secondary"
+              className="dialog-btn dialog-btn-secondary"
             >
               {t("Cancel")}
             </button>
@@ -286,7 +286,7 @@ export function MergeStandaloneApp() {
               type="button"
               onClick={handleApply}
               disabled={!allResolved}
-              className="merge-btn merge-btn-primary"
+              className="dialog-btn dialog-btn-primary"
             >
               {t("Apply")}
             </button>

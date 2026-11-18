@@ -1,5 +1,11 @@
 # Changelog / 更新日志
 
+## [1.1.1] - 2026-11-18
+
+### Fixed / 修复
+- **"Cancel" stole the highlight from the real action** — Dialogs and confirmation bars (Rollback, Push, Push-rejected, Merge editor, and the split commit button) no longer paint Cancel with `--vscode-button-secondaryBackground`; some themes make that bright green, so the least important button looked like the recommended one. They now share a single fixed action palette and the primary action is always the only emphasised button / 「取消」不再抢主按钮：回滚、推送、推送被拒、合并编辑器和拆分提交按钮统一改用固定的操作按钮配色，不再跟随主题的 secondary 色（某些主题下是亮绿），主操作永远是唯一的强调色
+- **Commit sidebar broke its labels when narrow** — Tabs, the conventional-commit picker and the split commit button keep their labels on one line, so "提交" no longer stacks vertically and "Commit and Push" ellipsizes instead of squeezing the row / 提交侧边栏变窄时不再挤坏文字：标签页、提交类型选择器和拆分提交按钮都保持单行，「提交」不再变成竖排，「提交并推送」改为省略号
+
 ## [1.1.0] - 2026-11-11
 
 ### Added / 新增

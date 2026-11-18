@@ -365,35 +365,16 @@ export function CreateBranchDialog({
         <div style={{ display: "flex", justifyContent: "flex-end", gap: 8 }}>
           <button
             type="button"
+            className="dialog-btn dialog-btn-secondary"
             onClick={onClose}
-            style={{
-              background: "var(--vscode-button-secondaryBackground, #3a3d41)",
-              color: "var(--vscode-button-secondaryForeground, var(--app-fg))",
-              border: "none",
-              borderRadius: 4,
-              padding: "4px 14px",
-              fontSize: 12,
-              height: 28,
-              cursor: "pointer",
-            }}
           >
             {t("Cancel")}
           </button>
           <button
             type="button"
+            className="dialog-btn dialog-btn-primary"
             onClick={handleSubmit}
             disabled={!typedName || submitting}
-            style={{
-              background: "var(--button-bg)",
-              color: "var(--button-fg)",
-              border: "none",
-              borderRadius: 4,
-              padding: "4px 14px",
-              fontSize: 12,
-              height: 28,
-              cursor: typedName && !submitting ? "pointer" : "default",
-              opacity: typedName && !submitting ? 1 : 0.4,
-            }}
           >
             {t("Create")}
           </button>
